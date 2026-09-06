@@ -64,3 +64,7 @@ Sign-in uses state, an HttpOnly SameSite cookie and PKCE. It requests `read:user
 Choose a repository, then **Connect & sync**. The main sync button also applies an edited repository selection. All repository links continue pointing to the last successfully saved connection until the new sync succeeds; a failed selection cannot relabel old evidence as belonging to a different repository. Signing in does not create webhooks.
 
 Implementation reference: [GitHub OAuth authorization flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
+
+## ChatGPT companion
+
+The floating ChatGPT button opens a local link panel. Paste an HTTPS chatgpt.com homepage or conversation URL; it is saved only in this browser's local storage. Open ChatGPT window launches the real website in a separate browser window (some browsers use a tab); Open in new tab is the fallback. Sign in and type directly in ChatGPT. Episteme neither embeds the site nor sends, scrapes or synchronizes conversations. The panel does not require an OpenAI API key and is not an API chatbot. Minimize or Escape closes the panel. The destination is restricted to HTTPS chatgpt.com without embedded credentials or custom ports.
