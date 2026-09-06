@@ -25,15 +25,15 @@ def test_empty_and_stub_are_not_complete():
     assert m.analyze(p,files)[0]=='in_progress'
 
 def test_sync_persists_and_deletion_recalculates(client,monkeypatch):
-    monkeypatch.setattr(m,'snapshot',lambda:('a'*40,source()))
+    monkeypatch.setattr(m,'snapshot',lambda *args:('a'*40,source()))
     assert client.post('/api/sync',headers={'x-episteme-client':'dashboard'}).status_code==200
     data=client.get('/api/progress').json()
     assert data['completed']==1 and data['percent']==33
     assert data['projects'][0]['status']=='completed'
     # A fresh connection reads persisted results, not a UI-only count.
     with m.database() as db:
-        assert db.execute('SELECT status FROM progress WHERE id="PY01"').fetchone()[0]=='completed'
-    monkeypatch.setattr(m,'snapshot',lambda:('b'*40,{}))
+        assert db.execute('SELECT status FROM bound_progress WHERE id="PY01"').fetchone()[0]=='completed'
+    monkeypatch.setattr(m,'snapshot',lambda *args:('b'*40,{}))
     m.sync()
     assert client.get('/api/progress').json()['completed']==0
 
@@ -43,7 +43,7 @@ def signed(payload,delivery='test-delivery'):
 
 def test_signature_repo_branch_and_duplicate(client,monkeypatch):
     calls=[]
-    def read():
+    def read(*args):
         calls.append(1)
         return 'a'*40,source()
     monkeypatch.setattr(m,'snapshot',read)
@@ -62,15 +62,15 @@ def test_signature_repo_branch_and_duplicate(client,monkeypatch):
     assert len(calls)==1
 
 def test_failed_sync_retains_data_and_can_retry(client,monkeypatch):
-    monkeypatch.setattr(m,'snapshot',lambda:('a'*40,source()))
+    monkeypatch.setattr(m,'snapshot',lambda *args:('a'*40,source()))
     m.sync()
-    def fail():
+    def fail(*args):
         raise m.HTTPException(502,'GitHub unavailable')
     monkeypatch.setattr(m,'snapshot',fail)
     body,headers=signed({'repository':{'full_name':m.REPO,'default_branch':'main'},'ref':'refs/heads/main'})
     assert client.post('/api/webhooks/github',content=body,headers=headers).status_code==502
     assert client.get('/api/progress').json()['completed']==1
-    monkeypatch.setattr(m,'snapshot',lambda:('b'*40,{}))
+    monkeypatch.setattr(m,'snapshot',lambda *args:('b'*40,{}))
     assert client.post('/api/webhooks/github',content=body,headers=headers).status_code==200
 
 def test_manual_sync_requires_header(client):
@@ -91,11 +91,11 @@ def test_repository_url_has_no_trailing_slash(monkeypatch):
         seen.append(url)
         return Response()
     monkeypatch.setattr(m.httpx,'get',get)
-    m.github('')
+    m.github('',m.REPO)
     assert seen==['https://api.github.com/repos/'+m.REPO]
 
 def test_incomplete_tree_does_not_zero_progress(monkeypatch):
-    def get(path):
+    def get(path,*args):
         if not path:
             return {'default_branch':'main'}
         if path.startswith('commits/'):
@@ -105,3 +105,50 @@ def test_incomplete_tree_does_not_zero_progress(monkeypatch):
     with pytest.raises(m.HTTPException) as error:
         m.snapshot()
     assert error.value.status_code==502
+
+def test_connection_switch_and_failed_access_preserve_progress(client,monkeypatch):
+    monkeypatch.setattr(m,'snapshot',lambda *args:('a'*40,source()))
+    m.sync()
+    headers={'x-episteme-client':'dashboard'}
+    monkeypatch.setattr(m,'snapshot',lambda *args:('b'*40,{}))
+    assert client.put('/api/connection',json={'repository':'https://github.com/someone/another-name','root':'learning'},headers=headers).status_code==200
+    data=client.get('/api/progress').json()
+    assert data['completed']==0 and data['repository']=='someone/another-name'
+    assert data['projects'][0]['path']=='learning/01-temperature'
+    def fail(*args):
+        raise m.HTTPException(502,'Unavailable')
+    monkeypatch.setattr(m,'snapshot',fail)
+    assert client.put('/api/connection',json={'repository':m.REPO},headers=headers).status_code==502
+    assert m.binding()['repository']=='someone/another-name'
+    with m.database() as db:
+        assert db.execute('SELECT status FROM bound_progress WHERE binding=? AND id=?',(m.REPO+':projects','PY01')).fetchone()[0]=='completed'
+    monkeypatch.setattr(m,'snapshot',lambda *args:('c'*40,source()))
+    assert client.put('/api/connection',json={'repository':m.REPO},headers=headers).status_code==200
+    assert client.get('/api/progress').json()['completed']==1
+
+@pytest.mark.parametrize('repo,root',[('https://evil.example/x/y','projects'),('a/b/c','projects'),('a/b','../secrets'),('a/b','x//y')])
+def test_bad_bindings_rejected(client,repo,root):
+    assert client.put('/api/connection',json={'repository':repo,'root':root},headers={'x-episteme-client':'dashboard'}).status_code==422
+
+def test_legacy_data_migrates_once(client):
+    import sqlite3
+    with sqlite3.connect(m.DB_PATH) as db:
+        db.execute('CREATE TABLE progress(id TEXT PRIMARY KEY,status TEXT,checks TEXT,sha TEXT,updated_at TEXT)')
+        db.execute('INSERT INTO progress VALUES(?,?,?,?,?)',('PY01','completed','[]','a'*40,'2026-09-06'))
+    assert client.get('/api/progress').json()['completed']==1
+    assert client.get('/api/progress').json()['completed']==1
+
+def test_root_folder_mapping():
+    assert m.catalog({'repository':'a/any-name','root':''})[0]['path']=='01-temperature'
+
+def test_wrong_parent_reports_actual_folder(monkeypatch):
+    def get(path,*args):
+        if not path:
+            return {'default_branch':'main'}
+        if path.startswith('commits/'):
+            return {'sha':'c'*40}
+        return {'tree':[{'path':'projects/01-temperature','type':'tree'}]}
+    monkeypatch.setattr(m,'github',get)
+    with pytest.raises(m.HTTPException) as error:
+        m.snapshot({'repository':'any/repo','root':''})
+    assert error.value.status_code==422 and 'under projects' in error.value.detail
