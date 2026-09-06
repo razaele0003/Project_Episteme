@@ -65,6 +65,8 @@ Choose a repository, then **Connect & sync**. The main sync button also applies 
 
 Implementation reference: [GitHub OAuth authorization flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
 
-## ChatGPT companion
+## Mini browser
 
-The floating ChatGPT button opens a local link panel. Paste an HTTPS chatgpt.com homepage or conversation URL; it is saved only in this browser's local storage. Open ChatGPT window launches the real website in a separate browser window (some browsers use a tab); Open in new tab is the fallback. Sign in and type directly in ChatGPT. Episteme neither embeds the site nor sends, scrapes or synchronizes conversations. The panel does not require an OpenAI API key and is not an API chatbot. Minimize or Escape closes the panel. The destination is restricted to HTTPS chatgpt.com without embedded credentials or custom ports.
+The floating Browser button opens an embedded web viewer above the dashboard without resizing or reflowing the page. It includes an address bar, back, forward, reload and external-open controls. The last valid address is saved only in this browser's local storage. Addresses are restricted to public HTTPS hosts without embedded credentials or custom ports.
+
+The viewer uses a sandboxed iframe and does not inspect or synchronize page content. Websites may block iframe embedding through their own security policy. ChatGPT does this, so use the external-open control for chatgpt.com. Minimize or Escape closes the panel.
