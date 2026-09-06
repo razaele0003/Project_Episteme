@@ -64,9 +64,3 @@ Sign-in uses state, an HttpOnly SameSite cookie and PKCE. It requests `read:user
 Choose a repository, then **Connect & sync**. The main sync button also applies an edited repository selection. All repository links continue pointing to the last successfully saved connection until the new sync succeeds; a failed selection cannot relabel old evidence as belonging to a different repository. Signing in does not create webhooks.
 
 Implementation reference: [GitHub OAuth authorization flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
-
-## Mini browser
-
-The floating Browser button opens an embedded web viewer above the dashboard without resizing or reflowing the page. It includes an address bar, back, forward, reload and external-open controls. Plain hostnames such as `example.com` automatically receive `https://`. The last valid address is saved only in this browser's local storage. Addresses are restricted to public HTTPS hosts without embedded credentials or custom ports.
-
-The viewer uses a sandboxed iframe and does not inspect or synchronize page content. Websites may block iframe embedding through their own security policy. ChatGPT does this, so use the external-open control for chatgpt.com. Minimize or Escape closes the panel.
