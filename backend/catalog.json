@@ -1,0 +1,5 @@
+[
+ {"id":"PY01","title":"Temperature converter","category":"Foundations","description":"Turn Celsius into Fahrenheit with a reusable function. Describe normal, negative and boundary inputs.","path":"projects/01-temperature","function":"celsius_to_fahrenheit","node":"BinOp"},
+ {"id":"PY02","title":"Expense summary","category":"Collections","description":"Summarize a collection of expenses. Handle an empty list and explain your choice of data structure.","path":"projects/02-expenses","function":"summarize_expenses","node":"Return"},
+ {"id":"PY03","title":"Resilient file reader","category":"Error handling","description":"Read a text file safely. Handle a missing file explicitly and explain how a caller sees the outcome.","path":"projects/03-file-reader","function":"read_text_safely","node":"Try"}
+]
