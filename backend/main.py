@@ -18,6 +18,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from backend import github_auth
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = json.loads((ROOT / 'backend/catalog.json').read_text())
@@ -25,6 +26,7 @@ REPO = 'razaele0003/iz_time'
 DB_PATH = Path(os.environ.get('EPISTEME_DB', ROOT / 'data/progress.sqlite3'))
 LOCK = threading.Lock()
 app = FastAPI(title='Project Episteme')
+app.include_router(github_auth.router)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'] + os.environ.get('EPISTEME_HOSTS','').split(','))
 
 def now():
@@ -60,7 +62,7 @@ def database():
 def github(path, repository=None):
     repository = repository or binding()["repository"]
     headers = {'Accept':'application/vnd.github+json','User-Agent':'Project-Episteme','X-GitHub-Api-Version':'2022-11-28'}
-    token = os.environ.get('GITHUB_TOKEN')
+    token = os.environ.get('GITHUB_TOKEN') or github_auth.token()
     if token:
         headers['Authorization'] = f'Bearer {token}'
     try:

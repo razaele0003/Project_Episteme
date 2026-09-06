@@ -54,3 +54,13 @@ Use the dashboard connection form with owner/repository or an HTTPS GitHub URL. 
 Repository names are arbitrary. The exact milestone folder names (01-temperature, 02-expenses, 03-file-reader) determine which checks apply. Each repository and parent folder keeps separate progress and history. Existing iz_time records are migrated without deleting the original tables.
 
 This binds a repository for reading; it does not create a webhook. Public repositories work without tokens. Private repositories require a read-only GITHUB_TOKEN in the backend environment. Never enter a token in this form. After switching repositories, any future webhook must be configured on the selected repository.
+
+## GitHub sign-in
+
+The dashboard supports GitHub OAuth sign-in and a paginated public repository picker. Register an OAuth app in your GitHub developer settings with homepage `http://127.0.0.1:8766` and callback `http://127.0.0.1:8766/api/github/callback`. Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in the backend environment and restart it. Do not put the client secret in Git, the frontend, screenshots, or chat. OAuth setup is not provisioned automatically; until configured, the dashboard shows setup instructions and manual public-URL sync continues to work.
+
+Sign-in uses state, an HttpOnly SameSite cookie and PKCE. It requests `read:user`, without repository write scope, so the picker supports public repositories only. OAuth tokens remain in backend memory, expire locally after at most eight hours, and disappear on restart or sign-out. Sign-out clears the local session; revoke the app in GitHub settings to revoke GitHub's grant. Each token is used to verify the signed-in identity before being accepted. This remains a single-user local application, not a multiuser authenticated hosted service. Keep the backend on loopback and do not publish the account endpoints through a proxy. Use Uvicorn `--no-access-log` so callback codes are not written to request logs.
+
+Choose a repository, then **Connect & sync**. The main sync button also applies an edited repository selection. All repository links continue pointing to the last successfully saved connection until the new sync succeeds; a failed selection cannot relabel old evidence as belonging to a different repository. Signing in does not create webhooks.
+
+Implementation reference: [GitHub OAuth authorization flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
