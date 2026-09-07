@@ -182,6 +182,8 @@ def test_repository_curriculum_adds_course_and_project_detail(client,monkeypatch
     course_detail=client.get('/api/projects/P0.1').json()
     assert course_detail['example']['input']
     assert course_detail['example']['output']=='True'
+    assert course_detail['next_project']['id']=='P0.2'
+    assert course_detail['previous_project'] is None
 
 
 def test_flat_historical_file_is_not_project_evidence(client,monkeypatch):

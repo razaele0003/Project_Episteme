@@ -443,6 +443,10 @@ def project_detail(project_id: str):
         detail['checks'] = analyze(project,{})[1]
     detail['repository'] = connection['repository']
     detail['sha'] = saved_catalog['sha'] if saved_catalog else ''
+    navigation_catalog = [item for item in project_catalog if bool(item.get('historical')) == bool(project.get('historical'))]
+    position = next(index for index,item in enumerate(navigation_catalog) if item['id'] == project_id)
+    detail['previous_project'] = ({'id':navigation_catalog[position-1]['id'],'title':navigation_catalog[position-1]['title']} if position else None)
+    detail['next_project'] = ({'id':navigation_catalog[position+1]['id'],'title':navigation_catalog[position+1]['title']} if position + 1 < len(navigation_catalog) else None)
     return detail
 
 @app.post('/api/sync')

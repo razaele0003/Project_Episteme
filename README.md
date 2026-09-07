@@ -30,6 +30,8 @@ Every project page can show:
 - the project's README section or mapped README file;
 - the evidence checks used for the progress state.
 
+The learning interface separates six jobs: Dashboard shows what to do now, Roadmap explains the phase journey, Projects contains the build catalog, Skills summarizes repository evidence without claiming mastery, Portfolio shows only complete project evidence, and Sync history records technical snapshots. Project pages follow Mission → Why → Prerequisites → Build → Test → Review → Readiness.
+
 Course content is stored in `backend/course_curriculum.json`. It can be regenerated from the source curriculum PDF with `scripts/import_curriculum_pdf.py` using the bundled PDF dependencies.
 
 ## Repository mapping
