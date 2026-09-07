@@ -9,11 +9,32 @@ from backend import main as m
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(m,'DB_PATH',tmp_path/'test.sqlite3')
     monkeypatch.setenv('GITHUB_WEBHOOK_SECRET','test-only-secret')
-    return TestClient(m.app)
+    client = TestClient(m.app)
+    with m.database() as db:
+        db.execute("UPDATE settings SET value=? WHERE key='binding'",(json.dumps({'repository':m.REPO,'root':'projects'}),))
+    return client
 
 def source():
     p=m.CATALOG[0]
     return {p['path']+'/main.py':'def celsius_to_fahrenheit(c):\n    return c * 9 / 5 + 32\n',p['path']+'/README.md':'Explanation of inputs outputs and edge cases. '*8,p['path']+'/BRIEF.md':'Convert Celsius to Fahrenheit.'}
+
+
+def test_fresh_workspace_has_no_repository(tmp_path,monkeypatch):
+    monkeypatch.setattr(m,'DB_PATH',tmp_path/'fresh.sqlite3')
+    data=TestClient(m.app).get('/api/progress').json()
+    assert data['repository']=='' and data['root']==''
+    assert data['completed']==0 and data['total']==197 and data['percent']==0
+
+
+def test_reset_clears_repository_progress_and_github_session(client,monkeypatch):
+    monkeypatch.setattr(m,'snapshot',lambda *args:('a'*40,source()))
+    m.sync()
+    m.github_auth.session.update(token='temporary',login='learner',expires=9999999999)
+    response=client.post('/api/reset',headers={'x-episteme-client':'dashboard'})
+    assert response.status_code==200
+    data=client.get('/api/progress').json()
+    assert data['repository']=='' and data['activity']==[] and data['completed']==0 and data['total']==197
+    assert m.github_auth.token() is None
 
 def test_empty_and_stub_are_not_complete():
     p=m.CATALOG[0]
@@ -130,11 +151,13 @@ def test_connection_switch_and_failed_access_preserve_progress(client,monkeypatc
 def test_bad_bindings_rejected(client,repo,root):
     assert client.put('/api/connection',json={'repository':repo,'root':root},headers={'x-episteme-client':'dashboard'}).status_code==422
 
-def test_legacy_completion_without_project_structure_is_retired(client):
+def test_legacy_completion_without_project_structure_is_retired(tmp_path,monkeypatch):
     import sqlite3
+    monkeypatch.setattr(m,'DB_PATH',tmp_path/'legacy.sqlite3')
     with sqlite3.connect(m.DB_PATH) as db:
         db.execute('CREATE TABLE progress(id TEXT PRIMARY KEY,status TEXT,checks TEXT,sha TEXT,updated_at TEXT)')
         db.execute('INSERT INTO progress VALUES(?,?,?,?,?)',('PY01','completed','[]','a'*40,'2026-09-06'))
+    client=TestClient(m.app)
     assert client.get('/api/progress').json()['completed']==0
     assert client.get('/api/progress').json()['completed']==0
 

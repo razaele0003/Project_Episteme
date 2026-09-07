@@ -37,6 +37,12 @@ def token():
         return session.get('token')
 
 
+def clear_session():
+    with guard:
+        session.clear()
+        pending.clear()
+
+
 @router.get('/status')
 def status(request: Request):
     local(request)
@@ -130,7 +136,5 @@ def repositories(request: Request, page: int=1):
 @router.post('/logout')
 def logout(request: Request):
     local(request)
-    with guard:
-        session.clear()
-        pending.clear()
+    clear_session()
     return {'signed_in':False}

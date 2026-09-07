@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CATALOG = json.loads((ROOT / 'backend/catalog.json').read_text())
 COURSE = json.loads((ROOT / 'backend/course_curriculum.json').read_text())
 REPO = 'razaele0003/iz_time'
+EMPTY_BINDING = {'repository':'','root':''}
 DB_PATH = Path(os.environ.get('EPISTEME_DB', ROOT / 'data/progress.sqlite3'))
 LOCK = threading.Lock()
 app = FastAPI(title='Project Episteme')
@@ -57,7 +58,7 @@ def database():
     try:
         with db:
             if not db.execute("SELECT 1 FROM settings WHERE key='binding'").fetchone():
-                initial = {'repository':REPO,'root':'projects'}
+                initial = EMPTY_BINDING
                 key = binding_key(initial)
                 db.execute("INSERT INTO settings VALUES('binding',?)", (json.dumps(initial),))
                 db.execute('INSERT OR IGNORE INTO bound_progress SELECT ?,id,status,checks,sha,updated_at FROM progress',(key,))
@@ -292,6 +293,8 @@ def binding():
 
 
 def catalog(connection, files=None):
+    if not connection.get('repository'):
+        return [course_project(row, ordinal=int(row.get('ordinal') or index + 1)) for index,row in enumerate(COURSE.get('projects',[]))]
     if files:
         dynamic = dynamic_catalog(connection, files)
         if dynamic:
@@ -358,6 +361,8 @@ def persist_snapshot(db, connection, sha, files, source, delivery=None):
 def sync(source='manual', delivery=None, expected_repository=None):
     with LOCK:
         connection = binding()
+        if not connection.get('repository'):
+            raise HTTPException(409,'Connect a GitHub repository before syncing.')
         if expected_repository and connection['repository'].lower()!=expected_repository.lower():
             raise HTTPException(409,'Repository binding changed; this event was not applied.')
         key = binding_key(connection)
@@ -411,6 +416,18 @@ def progress():
     completed = sum(p['status']=='completed' for p in learning_projects)
     total = len(learning_projects)
     return {**connection,'projects':projects,'completed':completed,'total':total,'percent':round(completed/total*100) if total else 0,'activity':activity,'last_sync':activity[0] if activity else None,'webhook_configured':bool(os.environ.get('GITHUB_WEBHOOK_SECRET'))}
+
+
+@app.post('/api/reset')
+def reset_workspace(request: Request):
+    require_local(request)
+    with LOCK:
+        with database() as db:
+            for table in ('bound_progress','bound_syncs','bound_deliveries','bound_catalog','bound_content','progress','syncs','deliveries'):
+                db.execute(f'DELETE FROM {table}')
+            db.execute("UPDATE settings SET value=? WHERE key='binding'",(json.dumps(EMPTY_BINDING),))
+        github_auth.clear_session()
+    return {'repository':'','root':'','completed':0,'percent':0}
 
 
 @app.get('/api/projects/{project_id}')
