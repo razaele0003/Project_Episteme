@@ -50,6 +50,3 @@ function App(){
  </main></div></div>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
-
-
-
