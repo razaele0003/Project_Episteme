@@ -168,7 +168,7 @@ def test_repository_curriculum_adds_course_and_project_detail(client,monkeypatch
     response=client.post('/api/sync',headers={'x-episteme-client':'dashboard'})
     assert response.status_code==200
     progress=client.get('/api/progress').json()
-    assert len(progress['projects'])==202
+    assert len(progress['projects'])==203
     assert progress['projects'][0]['title']=='Ohm archive'
     phase_zero=next(p for p in progress['projects'] if p['id']=='P0.1')
     assert phase_zero['title']=='Professional Development Environment'

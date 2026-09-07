@@ -141,6 +141,42 @@ def readme_section(readme, ordinal):
     return match.group(0).strip() if match else ''
 
 
+def course_project(course_row, mapping=None, ordinal=None):
+    mapping = mapping or {}
+    paths = mapping.get('source_paths') or []
+    source_path = next((str(path) for path in paths if safe_repo_path(str(path)) and not str(path).lower().endswith('.md')), '')
+    readme_path = str(mapping.get('readme_path') or '')
+    if not readme_path:
+        readme_path = next((str(path) for path in paths if safe_repo_path(str(path)) and str(path).lower().endswith('.md')), '')
+    if not safe_repo_path(readme_path):
+        readme_path = ''
+    project_id = str(course_row['id'])
+    phase = course_row.get('phase')
+    return {
+        'id':project_id,'alias':project_id,'title':str(course_row['title']),
+        'ordinal':ordinal or int(course_row.get('ordinal') or 0),'historical':False,
+        'phase':phase,'phase_title':str(course_row.get('phase_title') or f'Phase {phase}'),
+        'category':f"Phase {phase}", 'concept':str(course_row.get('concept') or ''),
+        'prerequisites':str(course_row.get('prerequisites') or ''),
+        'description':str(course_row.get('concept') or course_row.get('instructions') or ''),
+        'instructions':[str(course_row.get('instructions') or '')],
+        'example_input':str(course_row.get('example_input') or ''),
+        'example_output':str(course_row.get('example_output') or ''),
+        'expected_output':[str(course_row.get('example_output') or '')] if course_row.get('example_output') else [],
+        'source_page':course_row.get('source_page'),'source_path':source_path,'readme_path':readme_path,
+        'path':source_path or f"projects/{project_id}"
+    }
+
+
+def complete_saved_catalog(projects):
+    if not any(project.get('historical') for project in projects):
+        return projects
+    existing = {project['id'] for project in projects}
+    archive_count = sum(bool(project.get('historical')) for project in projects)
+    additions = [course_project(row, ordinal=archive_count + int(row.get('ordinal') or 0)) for row in COURSE.get('projects',[]) if row.get('id') not in existing]
+    return sorted(projects + additions,key=lambda project:int(project.get('ordinal') or 0))
+
+
 def dynamic_catalog(connection, files):
     try:
         curriculum = json.loads(files.get('.episteme/curriculum.json',''))
@@ -153,7 +189,6 @@ def dynamic_catalog(connection, files):
         return None
     projects = []
     # Preserve the learner's first ten projects as individual archive entries.
-    # The PDF's P1-P10 row is a combined assessment, so it is omitted below.
     for row in rows[:500]:
         if not isinstance(row,dict) or not row.get('id') or not row.get('title'):
             continue
@@ -179,32 +214,8 @@ def dynamic_catalog(connection, files):
         })
     offset = len(projects)
     for course_row in COURSE.get('projects',[]):
-        if course_row.get('id') == 'P1-P10':
-            continue
         mapping = mapped.get(str(course_row.get('id')), {})
-        paths = mapping.get('source_paths') or []
-        source_path = next((str(path) for path in paths if safe_repo_path(str(path)) and not str(path).lower().endswith('.md')), '')
-        readme_path = str(mapping.get('readme_path') or '')
-        if not readme_path:
-            readme_path = next((str(path) for path in paths if safe_repo_path(str(path)) and str(path).lower().endswith('.md')), '')
-        if not safe_repo_path(readme_path):
-            readme_path = ''
-        project_id = str(course_row['id'])
-        phase = course_row.get('phase')
-        projects.append({
-            'id':project_id,'alias':project_id,'title':str(course_row['title']),
-            'ordinal':offset + int(course_row.get('ordinal') or len(projects)+1),'historical':False,
-            'phase':phase,'phase_title':str(course_row.get('phase_title') or f'Phase {phase}'),
-            'category':f"Phase {phase}", 'concept':str(course_row.get('concept') or ''),
-            'prerequisites':str(course_row.get('prerequisites') or ''),
-            'description':str(course_row.get('concept') or course_row.get('instructions') or ''),
-            'instructions':[str(course_row.get('instructions') or '')],
-            'example_input':str(course_row.get('example_input') or ''),
-            'example_output':str(course_row.get('example_output') or ''),
-            'expected_output':[str(course_row.get('example_output') or '')] if course_row.get('example_output') else [],
-            'source_page':course_row.get('source_page'),'source_path':source_path,'readme_path':readme_path,
-            'path':source_path or f"projects/{project_id}"
-        })
+        projects.append(course_project(course_row,mapping,offset + int(course_row.get('ordinal') or len(projects)+1)))
     return projects or None
 
 def analyze(project, files):
@@ -360,7 +371,7 @@ def progress():
         records = {r['id']:dict(r) for r in db.execute('SELECT * FROM bound_progress WHERE binding=?',(key,))}
         activity = [dict(r) for r in db.execute('SELECT * FROM bound_syncs WHERE binding=? ORDER BY id DESC LIMIT 8',(key,))]
         saved_catalog = db.execute('SELECT catalog FROM bound_catalog WHERE binding=?',(key,)).fetchone()
-    project_catalog = json.loads(saved_catalog['catalog']) if saved_catalog else catalog(connection)
+    project_catalog = complete_saved_catalog(json.loads(saved_catalog['catalog'])) if saved_catalog else catalog(connection)
     projects = []
     for p in project_catalog:
         saved = records.get(p['id'])
@@ -378,7 +389,7 @@ def project_detail(project_id: str):
         saved_catalog = db.execute('SELECT catalog,sha FROM bound_catalog WHERE binding=?',(key,)).fetchone()
         records = {r['id']:dict(r) for r in db.execute('SELECT * FROM bound_progress WHERE binding=?',(key,))}
         content = db.execute('SELECT * FROM bound_content WHERE binding=? AND id=?',(key,project_id)).fetchone()
-    project_catalog = json.loads(saved_catalog['catalog']) if saved_catalog else catalog(connection)
+    project_catalog = complete_saved_catalog(json.loads(saved_catalog['catalog'])) if saved_catalog else catalog(connection)
     project = next((p for p in project_catalog if p['id'] == project_id),None)
     if not project:
         raise HTTPException(404,'Project not found in the connected repository curriculum.')

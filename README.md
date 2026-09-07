@@ -20,7 +20,7 @@ Open http://127.0.0.1:8766. Use **Connect and load** to bind a public GitHub rep
 
 ## Project pages
 
-The packaged course catalog contains 202 curriculum rows across Phases 0–20. Phase 0 is shown on the dashboard. The repository's original ten Python projects remain available as individual Practice archive pages.
+The packaged course catalog contains all 202 curriculum rows across Phases 0–20. Phase 0 is shown on the dashboard. The repository's original ten Python projects remain available as individual Practice archive pages alongside the curriculum's combined P1–P10 baseline assessment.
 
 Every project page can show:
 
