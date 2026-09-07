@@ -13,7 +13,7 @@ def client(tmp_path, monkeypatch):
 
 def source():
     p=m.CATALOG[0]
-    return {p['path']+'/main.py':'def celsius_to_fahrenheit(c):\n    return c * 9 / 5 + 32\n',p['path']+'/README.md':'Explanation of inputs outputs and edge cases. '*8}
+    return {p['path']+'/main.py':'def celsius_to_fahrenheit(c):\n    return c * 9 / 5 + 32\n',p['path']+'/README.md':'Explanation of inputs outputs and edge cases. '*8,p['path']+'/BRIEF.md':'Convert Celsius to Fahrenheit.'}
 
 def test_empty_and_stub_are_not_complete():
     p=m.CATALOG[0]
@@ -130,13 +130,13 @@ def test_connection_switch_and_failed_access_preserve_progress(client,monkeypatc
 def test_bad_bindings_rejected(client,repo,root):
     assert client.put('/api/connection',json={'repository':repo,'root':root},headers={'x-episteme-client':'dashboard'}).status_code==422
 
-def test_legacy_data_migrates_once(client):
+def test_legacy_completion_without_project_structure_is_retired(client):
     import sqlite3
     with sqlite3.connect(m.DB_PATH) as db:
         db.execute('CREATE TABLE progress(id TEXT PRIMARY KEY,status TEXT,checks TEXT,sha TEXT,updated_at TEXT)')
         db.execute('INSERT INTO progress VALUES(?,?,?,?,?)',('PY01','completed','[]','a'*40,'2026-09-06'))
-    assert client.get('/api/progress').json()['completed']==1
-    assert client.get('/api/progress').json()['completed']==1
+    assert client.get('/api/progress').json()['completed']==0
+    assert client.get('/api/progress').json()['completed']==0
 
 def test_root_folder_mapping():
     assert m.catalog({'repository':'a/any-name','root':''})[0]['path']=='01-temperature'
@@ -158,11 +158,13 @@ def test_repository_curriculum_adds_course_and_project_detail(client,monkeypatch
     files={
       '.episteme/curriculum.json':json.dumps({'projects':[{
         'id':'P001','title':'Ohm archive','ordinal':1,'historical':True,
-        'source_path':'one.py','criteria':[]
+        'source_path':'projects/one/main.py','criteria':[]
       }]}),
-      '.episteme/projects.json':json.dumps({'projects':[{'project_id':'P001','source_paths':['one.py']}]}),
+      '.episteme/projects.json':json.dumps({'projects':[{'project_id':'P001','project_folder':'projects/one'}]}),
       'README.md':'### 1. Ohm archive\n\nExplain the first solution.\n',
-      'one.py':'print(42)\n'
+      'projects/one/BRIEF.md':'Build the first solution.\n',
+      'projects/one/README.md':'Explain the first solution.\n',
+      'projects/one/main.py':'print(42)\n'
     }
     monkeypatch.setattr(m,'snapshot',lambda *args:('d'*40,files))
     response=client.post('/api/sync',headers={'x-episteme-client':'dashboard'})
@@ -174,7 +176,24 @@ def test_repository_curriculum_adds_course_and_project_detail(client,monkeypatch
     assert phase_zero['title']=='Professional Development Environment'
     detail=client.get('/api/projects/P001').json()
     assert detail['source']=='print(42)\n'
-    assert detail['readme'].startswith('### 1. Ohm archive')
+    assert detail['readme']=='Explain the first solution.\n'
+    assert detail['brief']=='Build the first solution.\n'
+    assert detail['structure_ready'] is True
     course_detail=client.get('/api/projects/P0.1').json()
     assert course_detail['example']['input']
     assert course_detail['example']['output']=='True'
+
+
+def test_flat_historical_file_is_not_project_evidence(client,monkeypatch):
+    files={
+      '.episteme/curriculum.json':json.dumps({'projects':[{'id':'P001','title':'Old flat file','ordinal':1,'historical':True,'source_path':'one.py'}]}),
+      '.episteme/projects.json':json.dumps({'projects':[{'project_id':'P001','source_paths':['one.py']}]}),
+      'README.md':'### 1. Old flat file\n\nNotes.\n',
+      'one.py':'print(42)\n'
+    }
+    monkeypatch.setattr(m,'snapshot',lambda *args:('e'*40,files))
+    assert client.post('/api/sync',headers={'x-episteme-client':'dashboard'}).status_code==200
+    project=client.get('/api/projects/P001').json()
+    assert project['status']=='not_started'
+    assert project['structure_ready'] is False
+    assert project['source']=='' and project['readme']==''

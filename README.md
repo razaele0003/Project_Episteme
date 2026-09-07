@@ -34,7 +34,7 @@ Course content is stored in `backend/course_curriculum.json`. It can be regenera
 
 ## Repository mapping
 
-Add `.episteme/projects.json` to the connected repository. A project may map a source file, a README, or both:
+Add `.episteme/projects.json` to the connected repository. Every project must map one folder containing the same three required files: `BRIEF.md`, `main.py`, and `README.md`. Loose files and sections from the repository-level README do not count as project evidence.
 
 ```json
 {
@@ -42,14 +42,13 @@ Add `.episteme/projects.json` to the connected repository. A project may map a s
   "projects": [
     {
       "project_id": "P0.1",
-      "source_paths": ["projects/P0.1/setup_check.py"],
-      "readme_path": "projects/P0.1/README.md"
+      "project_folder": "projects/P0.1"
     }
   ]
 }
 ```
 
-Episteme also reads `.episteme/curriculum.json` when present. Rows marked `historical: true` are kept as Practice archive entries. If an archive project uses the repository's main `README.md`, Episteme extracts that project's numbered `###` section.
+Episteme also reads `.episteme/curriculum.json` when present. Rows marked `historical: true` are kept as Practice archive entries, but they remain not started until they are moved into the required folder structure and mapped with `project_folder`.
 
 ## How synchronization works
 

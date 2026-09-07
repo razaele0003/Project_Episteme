@@ -47,8 +47,13 @@ def database():
       CREATE TABLE IF NOT EXISTS bound_syncs(id INTEGER PRIMARY KEY, binding TEXT, sha TEXT, source TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS bound_deliveries(binding TEXT, id TEXT, created_at TEXT, PRIMARY KEY(binding,id));
       CREATE TABLE IF NOT EXISTS bound_catalog(binding TEXT PRIMARY KEY, catalog TEXT NOT NULL, sha TEXT NOT NULL, updated_at TEXT NOT NULL);
-      CREATE TABLE IF NOT EXISTS bound_content(binding TEXT, id TEXT, source_path TEXT, source TEXT, readme_path TEXT, readme TEXT, expected_output TEXT, PRIMARY KEY(binding,id));
+      CREATE TABLE IF NOT EXISTS bound_content(binding TEXT, id TEXT, source_path TEXT, source TEXT, readme_path TEXT, readme TEXT, brief_path TEXT, brief TEXT, expected_output TEXT, PRIMARY KEY(binding,id));
     ''')
+    content_columns = {row['name'] for row in db.execute('PRAGMA table_info(bound_content)')}
+    if 'brief_path' not in content_columns:
+        db.execute("ALTER TABLE bound_content ADD COLUMN brief_path TEXT NOT NULL DEFAULT ''")
+    if 'brief' not in content_columns:
+        db.execute("ALTER TABLE bound_content ADD COLUMN brief TEXT NOT NULL DEFAULT ''")
     try:
         with db:
             if not db.execute("SELECT 1 FROM settings WHERE key='binding'").fetchone():
@@ -123,7 +128,7 @@ def snapshot(connection=None):
         if alternatives:
             suggested = ', '.join(p or '(repository root)' for p in alternatives[:3])
             raise HTTPException(422, f'Project folders were found under {suggested}. Update Projects parent folder. Saved progress was kept.')
-    wanted = {path for p in projects for path in (p.get('source_path'),p.get('readme_path')) if path and path != 'README.md'}
+    wanted = {path for p in projects for path in (p.get('source_path'),p.get('readme_path'),p.get('brief_path')) if path}
     for path in wanted:
         if safe_repo_path(path):
             read_file(path)
@@ -141,18 +146,33 @@ def readme_section(readme, ordinal):
     return match.group(0).strip() if match else ''
 
 
+def standard_folder(mapping):
+    folder = str(mapping.get('project_folder') or mapping.get('folder') or '').strip().strip('/')
+    if not folder:
+        for path in mapping.get('source_paths') or []:
+            path = str(path).strip().strip('/')
+            if path.lower().endswith('/main.py'):
+                folder = path.rsplit('/',1)[0]
+                break
+    return folder if safe_repo_path(folder) else ''
+
+
+def with_standard_structure(project, folder):
+    folder = folder.strip().strip('/') if folder else ''
+    return {**project,
+        'project_folder':folder,
+        'path':folder or project.get('path') or f"projects/{project['id']}",
+        'source_path':f'{folder}/main.py' if folder else '',
+        'readme_path':f'{folder}/README.md' if folder else '',
+        'brief_path':f'{folder}/BRIEF.md' if folder else ''
+    }
+
+
 def course_project(course_row, mapping=None, ordinal=None):
     mapping = mapping or {}
-    paths = mapping.get('source_paths') or []
-    source_path = next((str(path) for path in paths if safe_repo_path(str(path)) and not str(path).lower().endswith('.md')), '')
-    readme_path = str(mapping.get('readme_path') or '')
-    if not readme_path:
-        readme_path = next((str(path) for path in paths if safe_repo_path(str(path)) and str(path).lower().endswith('.md')), '')
-    if not safe_repo_path(readme_path):
-        readme_path = ''
     project_id = str(course_row['id'])
     phase = course_row.get('phase')
-    return {
+    project = {
         'id':project_id,'alias':project_id,'title':str(course_row['title']),
         'ordinal':ordinal or int(course_row.get('ordinal') or 0),'historical':False,
         'phase':phase,'phase_title':str(course_row.get('phase_title') or f'Phase {phase}'),
@@ -163,14 +183,21 @@ def course_project(course_row, mapping=None, ordinal=None):
         'example_input':str(course_row.get('example_input') or ''),
         'example_output':str(course_row.get('example_output') or ''),
         'expected_output':[str(course_row.get('example_output') or '')] if course_row.get('example_output') else [],
-        'source_page':course_row.get('source_page'),'source_path':source_path,'readme_path':readme_path,
-        'path':source_path or f"projects/{project_id}"
+        'source_page':course_row.get('source_page'),'path':f"projects/{project_id}"
     }
+    return with_standard_structure(project,standard_folder(mapping))
 
 
 def complete_saved_catalog(projects):
     if not any(project.get('historical') for project in projects):
         return projects
+    normalized = []
+    for project in projects:
+        folder = project.get('project_folder') or ''
+        if not folder and str(project.get('source_path','')).lower().endswith('/main.py'):
+            folder = str(project['source_path']).rsplit('/',1)[0]
+        normalized.append(with_standard_structure(project,folder))
+    projects = normalized
     existing = {project['id'] for project in projects}
     archive_count = sum(bool(project.get('historical')) for project in projects)
     additions = [course_project(row, ordinal=archive_count + int(row.get('ordinal') or 0)) for row in COURSE.get('projects',[]) if row.get('id') not in existing]
@@ -195,23 +222,18 @@ def dynamic_catalog(connection, files):
         if not row.get('historical'):
             continue
         mapping = mapped.get(row['id'],{})
-        paths = mapping.get('source_paths') or ([row.get('source_path')] if row.get('source_path') else [])
-        source_path = next((str(path) for path in paths if safe_repo_path(str(path))), '')
-        readme_path = str(mapping.get('readme_path') or 'README.md')
-        if not safe_repo_path(readme_path):
-            readme_path = 'README.md'
         criteria = row.get('criteria') if isinstance(row.get('criteria'),list) else []
         expected = [str(item.get('text')) for item in criteria if isinstance(item,dict) and item.get('text')]
         instructions = [str(item) for item in row.get('instructions',[]) if isinstance(item,str)]
         phase = row.get('phase') if isinstance(row.get('phase'),int) else None
-        projects.append({
+        project = {
             'id':str(row['id']),'alias':str(row.get('alias') or row['id']),'title':str(row['title']),
             'ordinal':int(row.get('ordinal') or len(projects)+1),'historical':bool(row.get('historical')),
             'phase':phase,'category':'Practice archive' if row.get('historical') else f"Phase {phase}" if phase is not None else 'Curriculum',
             'description':instructions[0] if instructions else 'A mapped project from the repository curriculum.',
-            'instructions':instructions,'expected_output':expected,'source_path':source_path,'readme_path':readme_path,
-            'path':source_path or f".episteme/projects/{row['id']}"
-        })
+            'instructions':instructions,'expected_output':expected,'path':f"projects/{row['id']}"
+        }
+        projects.append(with_standard_structure(project,standard_folder(mapping)))
     offset = len(projects)
     for course_row in COURSE.get('projects',[]):
         mapping = mapped.get(str(course_row.get('id')), {})
@@ -224,23 +246,24 @@ def analyze(project, files):
     code = files.get(source_path, '')
     notes = files.get(readme_path, '')
     if project.get('historical') or 'function' not in project:
+        brief_path = project.get('brief_path') or ''
         tree = None
         if source_path.endswith('.py') and code.strip():
             try:
                 tree = ast.parse(code)
             except (SyntaxError,ValueError,RecursionError):
                 pass
-        valid = bool(code.strip()) and (tree is not None if source_path.endswith('.py') else True)
+        structure_ready = bool(source_path and readme_path and brief_path and code.strip() and notes.strip() and files.get(brief_path,'').strip())
+        valid = structure_ready and (tree is not None if source_path.endswith('.py') else True)
         checks = [
-          {'label':'Solution file is mapped in the repository', 'passed':bool(source_path)},
-          {'label':'Solution source exists at the synced commit', 'passed':bool(code.strip())},
+          {'label':'Project folder is mapped in .episteme/projects.json', 'passed':bool(project.get('project_folder'))},
+          {'label':'BRIEF.md exists in the project folder', 'passed':bool(files.get(brief_path,'').strip())},
+          {'label':'main.py exists in the project folder', 'passed':bool(code.strip())},
+          {'label':'README.md exists in the project folder', 'passed':bool(notes.strip())},
           {'label':'Python source parses successfully' if source_path.endswith('.py') else 'Source file is readable', 'passed':valid},
-          {'label':'Project instructions are available', 'passed':bool(project.get('instructions') or notes.strip())}
         ]
-        if project.get('historical'):
-            status = 'completed' if valid else 'in_progress' if code.strip() else 'not_started'
-        else:
-            status = 'in_progress' if code.strip() else 'not_started'
+        any_evidence = any(bool(files.get(path,'').strip()) for path in (brief_path,source_path,readme_path) if path)
+        status = 'completed' if valid else 'in_progress' if any_evidence else 'not_started'
         return status, checks
     tree = None
     try:
@@ -275,8 +298,10 @@ def catalog(connection, files=None):
             return dynamic
     root = connection['root']
     return [{**p,'path':'/'.join(filter(None,[root,p['path'].split('/')[-1]])),
+             'project_folder':'/'.join(filter(None,[root,p['path'].split('/')[-1]])),
              'source_path':'/'.join(filter(None,[root,p['path'].split('/')[-1],'main.py'])),
              'readme_path':'/'.join(filter(None,[root,p['path'].split('/')[-1],'README.md'])),
+             'brief_path':'/'.join(filter(None,[root,p['path'].split('/')[-1],'BRIEF.md'])),
              'instructions':[p['description']],'expected_output':[],'phase':None,'historical':False,
              'alias':p['id'],'ordinal':index+1} for index,p in enumerate(CATALOG)]
 
@@ -314,14 +339,15 @@ def persist_snapshot(db, connection, sha, files, source, delivery=None):
         db.execute('INSERT OR REPLACE INTO bound_progress VALUES(?,?,?,?,?,?)',(key,p['id'],status,json.dumps(checks),sha,timestamp))
         source_path = p.get('source_path') or ''
         readme_path = p.get('readme_path') or ''
+        brief_path = p.get('brief_path') or ''
         source_text = files.get(source_path,'') if source_path else ''
         readme_text = files.get(readme_path,'') if readme_path else ''
-        if p.get('historical'):
-            readme_path = 'README.md'
-            readme_text = readme_section(files.get('README.md',''),p.get('ordinal'))
+        brief_text = files.get(brief_path,'') if brief_path else ''
         example = {'input':p.get('example_input',''),'output':p.get('example_output','')}
-        db.execute('INSERT INTO bound_content VALUES(?,?,?,?,?,?,?)',(
-            key,p['id'],source_path,source_text,readme_path,readme_text,json.dumps(example)
+        db.execute('''INSERT INTO bound_content
+          (binding,id,source_path,source,readme_path,readme,brief_path,brief,expected_output)
+          VALUES(?,?,?,?,?,?,?,?,?)''',(
+            key,p['id'],source_path,source_text,readme_path,readme_text,brief_path,brief_text,json.dumps(example)
         ))
     db.execute('INSERT INTO bound_syncs(binding,sha,source,created_at) VALUES(?,?,?,?)',(key,sha,source,timestamp))
     if delivery:
@@ -369,6 +395,7 @@ def progress():
         connection = json.loads(db.execute("SELECT value FROM settings WHERE key='binding'").fetchone()[0])
         key = binding_key(connection)
         records = {r['id']:dict(r) for r in db.execute('SELECT * FROM bound_progress WHERE binding=?',(key,))}
+        content_records = {r['id']:dict(r) for r in db.execute('SELECT * FROM bound_content WHERE binding=?',(key,))}
         activity = [dict(r) for r in db.execute('SELECT * FROM bound_syncs WHERE binding=? ORDER BY id DESC LIMIT 8',(key,))]
         saved_catalog = db.execute('SELECT catalog FROM bound_catalog WHERE binding=?',(key,)).fetchone()
     project_catalog = complete_saved_catalog(json.loads(saved_catalog['catalog'])) if saved_catalog else catalog(connection)
@@ -376,7 +403,10 @@ def progress():
     for p in project_catalog:
         saved = records.get(p['id'])
         status, checks = analyze(p,{})
-        projects.append({**p,'status':saved['status'] if saved else status,'checks':json.loads(saved['checks']) if saved else checks})
+        content = content_records.get(p['id'],{})
+        structure_ready = bool(p.get('project_folder') and content.get('brief','').strip() and content.get('source','').strip() and content.get('readme','').strip())
+        partial = bool(p.get('project_folder') and any(content.get(name,'').strip() for name in ('brief','source','readme')))
+        projects.append({**p,'status':saved['status'] if saved and structure_ready else 'in_progress' if partial else 'not_started','checks':json.loads(saved['checks']) if saved and structure_ready else checks,'structure_ready':structure_ready})
     completed = sum(p['status']=='completed' for p in projects)
     return {**connection,'projects':projects,'completed':completed,'total':len(projects),'percent':round(completed/len(projects)*100) if projects else 0,'activity':activity,'last_sync':activity[0] if activity else None,'webhook_configured':bool(os.environ.get('GITHUB_WEBHOOK_SECRET'))}
 
@@ -397,13 +427,20 @@ def project_detail(project_id: str):
     status, checks = analyze(project,{})
     detail = {**project,'status':saved['status'] if saved else status,'checks':json.loads(saved['checks']) if saved else checks}
     if content:
+        structure_ready = bool(project.get('project_folder') and content['brief'].strip() and content['source'].strip() and content['readme'].strip())
         detail.update({
-            'source_path':content['source_path'],'source':content['source'],
-            'readme_path':content['readme_path'],'readme':content['readme'],
+            'source_path':content['source_path'] if structure_ready else '','source':content['source'] if structure_ready else '',
+            'readme_path':content['readme_path'] if structure_ready else '','readme':content['readme'] if structure_ready else '',
+            'brief_path':content['brief_path'] if structure_ready else '','brief':content['brief'] if structure_ready else '',
+            'structure_ready':structure_ready,
+            'missing_structure':[name for name,value in [('BRIEF.md',content['brief']),('main.py',content['source']),('README.md',content['readme'])] if not value.strip()],
             'example':json.loads(content['expected_output'])
         })
     else:
-        detail.update({'source':'','readme':'','example':{'input':project.get('example_input',''),'output':project.get('example_output','')}})
+        detail.update({'source':'','readme':'','brief':'','structure_ready':False,'missing_structure':['BRIEF.md','main.py','README.md'],'example':{'input':project.get('example_input',''),'output':project.get('example_output','')}})
+    if not detail['structure_ready']:
+        detail['status'] = 'not_started'
+        detail['checks'] = analyze(project,{})[1]
     detail['repository'] = connection['repository']
     detail['sha'] = saved_catalog['sha'] if saved_catalog else ''
     return detail
