@@ -20,7 +20,7 @@ Open http://127.0.0.1:8766. Use **Connect and load** to bind a public GitHub rep
 
 ## Project pages
 
-The packaged course catalog contains all 202 curriculum rows across Phases 0–20. Phase 0 is shown on the dashboard. The repository's original ten Python projects remain available as individual Practice archive pages alongside the curriculum's combined P1–P10 baseline assessment.
+The packaged course catalog contains all 202 curriculum rows. Phase 0 is presented as a repository and tool setup guide, so its five preparation items are not treated as projects. The progress bar covers the 197 learning projects in Phases 1–20. The repository's original ten Python projects remain available as individual Practice archive pages without affecting current curriculum progress.
 
 Every project page can show:
 
@@ -43,8 +43,8 @@ Add `.episteme/projects.json` to the connected repository. Every project must ma
   "schema_version": 1,
   "projects": [
     {
-      "project_id": "P0.1",
-      "project_folder": "projects/P0.1"
+      "project_id": "P1-P10",
+      "project_folder": "projects/P1-P10"
     }
   ]
 }
@@ -66,7 +66,7 @@ This does not require a webhook. Manual sync is the intended local workflow. A w
 
 ## Progress meaning
 
-Progress records visible repository evidence. It does not claim code correctness or independent mastery. Historical Python files count as present when their source exists and parses. New curriculum projects remain not started until their source path is mapped and synced. Removing evidence removes that state on the next successful sync.
+Progress records visible repository evidence for Phases 1–20. It does not claim code correctness or independent mastery. Phase 0 preparation and historical archive entries never change the percentage. A learning project remains not started until its mapped folder contains `BRIEF.md`, `main.py`, and `README.md` on GitHub. Removing evidence removes that state on the next successful sync.
 
 ## GitHub sign-in
 

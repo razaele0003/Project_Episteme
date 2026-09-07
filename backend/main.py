@@ -407,8 +407,10 @@ def progress():
         structure_ready = bool(p.get('project_folder') and content.get('brief','').strip() and content.get('source','').strip() and content.get('readme','').strip())
         partial = bool(p.get('project_folder') and any(content.get(name,'').strip() for name in ('brief','source','readme')))
         projects.append({**p,'status':saved['status'] if saved and structure_ready else 'in_progress' if partial else 'not_started','checks':json.loads(saved['checks']) if saved and structure_ready else checks,'structure_ready':structure_ready})
-    completed = sum(p['status']=='completed' for p in projects)
-    return {**connection,'projects':projects,'completed':completed,'total':len(projects),'percent':round(completed/len(projects)*100) if projects else 0,'activity':activity,'last_sync':activity[0] if activity else None,'webhook_configured':bool(os.environ.get('GITHUB_WEBHOOK_SECRET'))}
+    learning_projects = [p for p in projects if not p.get('historical') and p.get('phase') != 0]
+    completed = sum(p['status']=='completed' for p in learning_projects)
+    total = len(learning_projects)
+    return {**connection,'projects':projects,'completed':completed,'total':total,'percent':round(completed/total*100) if total else 0,'activity':activity,'last_sync':activity[0] if activity else None,'webhook_configured':bool(os.environ.get('GITHUB_WEBHOOK_SECRET'))}
 
 
 @app.get('/api/projects/{project_id}')
@@ -497,4 +499,3 @@ def index():
     if not (ROOT / 'dist/index.html').exists():
         raise HTTPException(503,'Build the frontend with npm run build first.')
     return FileResponse(ROOT / 'dist/index.html')
-

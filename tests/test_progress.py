@@ -160,17 +160,25 @@ def test_repository_curriculum_adds_course_and_project_detail(client,monkeypatch
         'id':'P001','title':'Ohm archive','ordinal':1,'historical':True,
         'source_path':'projects/one/main.py','criteria':[]
       }]}),
-      '.episteme/projects.json':json.dumps({'projects':[{'project_id':'P001','project_folder':'projects/one'}]}),
+      '.episteme/projects.json':json.dumps({'projects':[
+        {'project_id':'P001','project_folder':'projects/one'},
+        {'project_id':'P1-P10','project_folder':'projects/P1-P10'}
+      ]}),
       'README.md':'### 1. Ohm archive\n\nExplain the first solution.\n',
       'projects/one/BRIEF.md':'Build the first solution.\n',
       'projects/one/README.md':'Explain the first solution.\n',
-      'projects/one/main.py':'print(42)\n'
+      'projects/one/main.py':'print(42)\n',
+      'projects/P1-P10/BRIEF.md':'Run the baseline assessment.\n',
+      'projects/P1-P10/README.md':'Document the assessment result.\n',
+      'projects/P1-P10/main.py':'print("assessment ready")\n'
     }
     monkeypatch.setattr(m,'snapshot',lambda *args:('d'*40,files))
     response=client.post('/api/sync',headers={'x-episteme-client':'dashboard'})
     assert response.status_code==200
     progress=client.get('/api/progress').json()
     assert len(progress['projects'])==203
+    # Setup guidance and historical imports never inflate learning-project progress.
+    assert progress['completed']==1 and progress['total']==197 and progress['percent']==1
     assert progress['projects'][0]['title']=='Ohm archive'
     phase_zero=next(p for p in progress['projects'] if p['id']=='P0.1')
     assert phase_zero['title']=='Professional Development Environment'
