@@ -152,3 +152,29 @@ def test_wrong_parent_reports_actual_folder(monkeypatch):
     with pytest.raises(m.HTTPException) as error:
         m.snapshot({'repository':'any/repo','root':''})
     assert error.value.status_code==422 and 'under projects' in error.value.detail
+
+
+def test_repository_curriculum_adds_course_and_project_detail(client,monkeypatch):
+    files={
+      '.episteme/curriculum.json':json.dumps({'projects':[{
+        'id':'P001','title':'Ohm archive','ordinal':1,'historical':True,
+        'source_path':'one.py','criteria':[]
+      }]}),
+      '.episteme/projects.json':json.dumps({'projects':[{'project_id':'P001','source_paths':['one.py']}]}),
+      'README.md':'### 1. Ohm archive\n\nExplain the first solution.\n',
+      'one.py':'print(42)\n'
+    }
+    monkeypatch.setattr(m,'snapshot',lambda *args:('d'*40,files))
+    response=client.post('/api/sync',headers={'x-episteme-client':'dashboard'})
+    assert response.status_code==200
+    progress=client.get('/api/progress').json()
+    assert len(progress['projects'])==202
+    assert progress['projects'][0]['title']=='Ohm archive'
+    phase_zero=next(p for p in progress['projects'] if p['id']=='P0.1')
+    assert phase_zero['title']=='Professional Development Environment'
+    detail=client.get('/api/projects/P001').json()
+    assert detail['source']=='print(42)\n'
+    assert detail['readme'].startswith('### 1. Ohm archive')
+    course_detail=client.get('/api/projects/P0.1').json()
+    assert course_detail['example']['input']
+    assert course_detail['example']['output']=='True'
