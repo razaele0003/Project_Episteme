@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source_title": "AI Automation Course Curriculum",
-  "project_count": 202,
+  "project_count": 211,
   "projects": [
     {
       "id": "P0.1",
@@ -69,25 +69,142 @@
       "source_page": 4
     },
     {
-      "id": "P1-P10",
+      "id": "P1",
       "ordinal": 6,
       "phase": 1,
       "phase_title": "Python Foundations",
-      "title": "Baseline Foundation Assessment",
-      "prerequisites": "Prior Python Coursework",
-      "concept": "Algorithmic Evaluation of Prior Projects",
-      "instructions": "Submit previous code repositories covering Ohm's law, batch analysis, color decoding, and tolerance checks. Subject all scripts to strict static type analysis, PEP 8 enforcement, and automated functional tests.",
-      "example_input": "calculate_ohms_law(voltage= 24.0, resistance=8.0)",
-      "example_output": "{\"current\": 3.0, \"power\": 72.0}",
+      "title": "Ohm's Law Calculator",
+      "prerequisites": "Phase 0 setup",
+      "concept": "Variables, number input, and a basic calculation",
+      "instructions": "Ask the user for voltage and resistance. Calculate the current by dividing voltage by resistance, then show the answer clearly.",
+      "example_input": "Enter voltage: 12\nEnter resistance: 4",
+      "example_output": "The current is 3 amps.",
+      "source_page": 5
+    },
+    {
+      "id": "P2",
+      "ordinal": 7,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Current Tolerance Experiment",
+      "prerequisites": "P1",
+      "concept": "Comparing measured values with an allowed range",
+      "instructions": "Ask for the expected current, measured current, and allowed difference. Tell the user whether the measurement passes or fails.",
+      "example_input": "Enter expected current: 2\nEnter measured current: 2.1\nEnter allowed difference: 0.2",
+      "example_output": "PASS — the measured current is within the allowed range.",
+      "source_page": 5
+    },
+    {
+      "id": "P3",
+      "ordinal": 8,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Voltage Level Checker",
+      "prerequisites": "P2",
+      "concept": "Using conditions to classify a value",
+      "instructions": "Ask for a voltage and label it as low, normal, or high using clear ranges that you explain in the README.",
+      "example_input": "Enter voltage: 13",
+      "example_output": "Voltage level: HIGH",
+      "source_page": 5
+    },
+    {
+      "id": "P4",
+      "ordinal": 9,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Resistor Safety Checker",
+      "prerequisites": "P3",
+      "concept": "Combining calculations with a safety decision",
+      "instructions": "Ask for voltage, resistance, and the resistor's power rating. Calculate the power and clearly say whether the resistor is safe to use.",
+      "example_input": "Enter supply voltage: 5\nEnter resistance: 100\nEnter resistor power rating: 0.25",
+      "example_output": "Power used: 0.25 watts\nSafe to use: YES",
+      "source_page": 5
+    },
+    {
+      "id": "P5",
+      "ordinal": 10,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Resistor Batch Analyzer",
+      "prerequisites": "P4",
+      "concept": "Repeating the same check for several values",
+      "instructions": "Let the user enter several resistor values. Check every value and show a short summary of how many were accepted or rejected.",
+      "example_input": "Enter resistor values: 100, 220, 330",
+      "example_output": "3 resistors checked.\n3 valid, 0 rejected.",
+      "source_page": 5
+    },
+    {
+      "id": "P6",
+      "ordinal": 11,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Series and Parallel Resistance Calculator",
+      "prerequisites": "P5",
+      "concept": "Choosing a formula based on the user's selection",
+      "instructions": "Ask whether two resistors are connected in series or parallel, then calculate and display the total resistance.",
+      "example_input": "Choose connection: series\nEnter R1: 100\nEnter R2: 220",
+      "example_output": "Total resistance: 320 ohms",
+      "source_page": 5
+    },
+    {
+      "id": "P7",
+      "ordinal": 12,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Voltage Divider Function",
+      "prerequisites": "P6",
+      "concept": "Putting a calculation inside a reusable function",
+      "instructions": "Create a reusable function that receives a supply voltage and two resistor values, then returns the output voltage.",
+      "example_input": "Enter supply voltage: 12\nEnter R1: 1000\nEnter R2: 1000",
+      "example_output": "Output voltage: 6 volts",
+      "source_page": 5
+    },
+    {
+      "id": "P8",
+      "ordinal": 13,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Ohm's Law Function",
+      "prerequisites": "P7",
+      "concept": "Passing values into a function",
+      "instructions": "Move the Ohm's law calculation into a function that receives voltage and resistance. Call the function and show its answer.",
+      "example_input": "Enter voltage: 24\nEnter resistance: 8",
+      "example_output": "Current: 3 amps",
+      "source_page": 5
+    },
+    {
+      "id": "P9",
+      "ordinal": 14,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Ohm's Law with Return",
+      "prerequisites": "P8",
+      "concept": "Returning a result so other code can use it",
+      "instructions": "Update the Ohm's law function so it returns the calculated current. Store the returned value, then display it clearly.",
+      "example_input": "Enter voltage: 10\nEnter resistance: 5",
+      "example_output": "The returned current is 2 amps.",
+      "source_page": 5
+    },
+    {
+      "id": "P10",
+      "ordinal": 15,
+      "phase": 1,
+      "phase_title": "Python Foundations",
+      "title": "Resistor Color Decoder",
+      "prerequisites": "P9",
+      "concept": "Looking up values and combining them into a result",
+      "instructions": "Ask for four resistor band colors. Convert them into resistance and tolerance, then display both in familiar units.",
+      "example_input": "Enter resistor colors: brown, black, red, gold",
+      "example_output": "Resistance: 1,000 ohms\nTolerance: ±5%",
       "source_page": 5
     },
     {
       "id": "P11",
-      "ordinal": 7,
+      "ordinal": 16,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Engineering Test Analyzer",
-      "prerequisites": "P1–P10",
+      "prerequisites": "P10",
       "concept": "Iterative Evaluation and Return-Value Functions",
       "instructions": "Build a programmatic test analyzer that ingests a series of raw engineering performance metrics, applies programmatic thresholds, and returns structured dictionaries indicating operational pass/fail statuses.",
       "example_input": "scores=[95, 42, 88, 71], threshold=70",
@@ -96,7 +213,7 @@
     },
     {
       "id": "P12",
-      "ordinal": 8,
+      "ordinal": 17,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Multi-Condition Test Analyzer",
@@ -109,7 +226,7 @@
     },
     {
       "id": "P13",
-      "ordinal": 9,
+      "ordinal": 18,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Engineering Measurement Statistics",
@@ -122,7 +239,7 @@
     },
     {
       "id": "P14",
-      "ordinal": 10,
+      "ordinal": 19,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Measurement Classifier",
@@ -135,7 +252,7 @@
     },
     {
       "id": "P15",
-      "ordinal": 11,
+      "ordinal": 20,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Input Validation System",
@@ -148,7 +265,7 @@
     },
     {
       "id": "P16",
-      "ordinal": 12,
+      "ordinal": 21,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Safe Engineering Calculator",
@@ -161,7 +278,7 @@
     },
     {
       "id": "P17",
-      "ordinal": 13,
+      "ordinal": 22,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Interactive Menu Orchestrator",
@@ -174,7 +291,7 @@
     },
     {
       "id": "P18",
-      "ordinal": 14,
+      "ordinal": 23,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Batch Measurement Processor",
@@ -187,7 +304,7 @@
     },
     {
       "id": "P19",
-      "ordinal": 15,
+      "ordinal": 24,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Engineering Report Generator",
@@ -200,7 +317,7 @@
     },
     {
       "id": "P20",
-      "ordinal": 16,
+      "ordinal": 25,
       "phase": 1,
       "phase_title": "Python Foundations",
       "title": "Python Foundations Mini-Capstone",
@@ -213,7 +330,7 @@
     },
     {
       "id": "P21",
-      "ordinal": 17,
+      "ordinal": 26,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Modular Engineering Calculator",
@@ -226,7 +343,7 @@
     },
     {
       "id": "P22",
-      "ordinal": 18,
+      "ordinal": 27,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Custom Validation Library",
@@ -239,7 +356,7 @@
     },
     {
       "id": "P23",
-      "ordinal": 19,
+      "ordinal": 28,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Error-Resistant Data Processor",
@@ -252,7 +369,7 @@
     },
     {
       "id": "P24",
-      "ordinal": 20,
+      "ordinal": 29,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Unit Testing Laboratory",
@@ -265,7 +382,7 @@
     },
     {
       "id": "P25",
-      "ordinal": 21,
+      "ordinal": 30,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Structured Logging Infrastructure",
@@ -278,7 +395,7 @@
     },
     {
       "id": "P26",
-      "ordinal": 22,
+      "ordinal": 31,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Dynamic Configuration Manager",
@@ -291,7 +408,7 @@
     },
     {
       "id": "P27",
-      "ordinal": 23,
+      "ordinal": 32,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Python Packaging and Distribution",
@@ -304,7 +421,7 @@
     },
     {
       "id": "P28",
-      "ordinal": 24,
+      "ordinal": 33,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Command-Line Interface Tooling",
@@ -317,7 +434,7 @@
     },
     {
       "id": "P29",
-      "ordinal": 25,
+      "ordinal": 34,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Legacy Project Refactoring Lab",
@@ -330,7 +447,7 @@
     },
     {
       "id": "P30",
-      "ordinal": 26,
+      "ordinal": 35,
       "phase": 2,
       "phase_title": "Software Engineering Foundations",
       "title": "Verified Enterprise Application",
@@ -343,7 +460,7 @@
     },
     {
       "id": "P31",
-      "ordinal": 27,
+      "ordinal": 36,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Flat-File CSV Ingestion Engine",
@@ -356,7 +473,7 @@
     },
     {
       "id": "P32",
-      "ordinal": 28,
+      "ordinal": 37,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Programmatic CSV Cleansing Pipeline",
@@ -369,7 +486,7 @@
     },
     {
       "id": "P33",
-      "ordinal": 29,
+      "ordinal": 38,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Deterministic Record Deduplication Engine",
@@ -382,7 +499,7 @@
     },
     {
       "id": "P34",
-      "ordinal": 30,
+      "ordinal": 39,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Bidirectional CSV/JSON Serialization",
@@ -395,7 +512,7 @@
     },
     {
       "id": "P35",
-      "ordinal": 31,
+      "ordinal": 40,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Complex JSON Ingestion and Querying",
@@ -408,7 +525,7 @@
     },
     {
       "id": "P36",
-      "ordinal": 32,
+      "ordinal": 41,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Automated Filesystem Organizer",
@@ -421,7 +538,7 @@
     },
     {
       "id": "P37",
-      "ordinal": 33,
+      "ordinal": 42,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Dynamic Excel Workbook Generator",
@@ -434,7 +551,7 @@
     },
     {
       "id": "P38",
-      "ordinal": 34,
+      "ordinal": 43,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Advanced Pandas Data Cleansing",
@@ -447,7 +564,7 @@
     },
     {
       "id": "P39",
-      "ordinal": 35,
+      "ordinal": 44,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Spreadsheet Business KPI Generator",
@@ -460,7 +577,7 @@
     },
     {
       "id": "P40",
-      "ordinal": 36,
+      "ordinal": 45,
       "phase": 3,
       "phase_title": "Data Engineering for Automation",
       "title": "Capstone 1: Production Data Pipeline",
@@ -473,7 +590,7 @@
     },
     {
       "id": "P41",
-      "ordinal": 37,
+      "ordinal": 46,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "Low-Level HTTP Request Inspector",
@@ -486,7 +603,7 @@
     },
     {
       "id": "P42",
-      "ordinal": 38,
+      "ordinal": 47,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "Programmatic JSON Body Parser",
@@ -499,7 +616,7 @@
     },
     {
       "id": "P43",
-      "ordinal": 39,
+      "ordinal": 48,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "RFC-Compliant HTTP Status Evaluator",
@@ -512,7 +629,7 @@
     },
     {
       "id": "P44",
-      "ordinal": 40,
+      "ordinal": 49,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "Synchronous REST Client Foundation",
@@ -525,7 +642,7 @@
     },
     {
       "id": "P45",
-      "ordinal": 41,
+      "ordinal": 50,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "Robust API Exception Interceptor",
@@ -538,7 +655,7 @@
     },
     {
       "id": "P46",
-      "ordinal": 42,
+      "ordinal": 51,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "Comprehensive Network Request Logger",
@@ -551,7 +668,7 @@
     },
     {
       "id": "P47",
-      "ordinal": 43,
+      "ordinal": 52,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "Programmatic API Dashboard Aggregator",
@@ -564,7 +681,7 @@
     },
     {
       "id": "P48",
-      "ordinal": 44,
+      "ordinal": 53,
       "phase": 4,
       "phase_title": "Web and HTTP Fundamentals",
       "title": "Mock HTTP Integration Simulator",
@@ -577,7 +694,7 @@
     },
     {
       "id": "P49",
-      "ordinal": 45,
+      "ordinal": 54,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Public REST API Data Ingestor",
@@ -590,7 +707,7 @@
     },
     {
       "id": "P50",
-      "ordinal": 46,
+      "ordinal": 55,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Multi-Tier API Authentication Handler",
@@ -603,7 +720,7 @@
     },
     {
       "id": "P51",
-      "ordinal": 47,
+      "ordinal": 56,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Universal API Pagination Traverser",
@@ -616,7 +733,7 @@
     },
     {
       "id": "P52",
-      "ordinal": 48,
+      "ordinal": 57,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Client-Side Rate-Limit Throttler",
@@ -629,7 +746,7 @@
     },
     {
       "id": "P53",
-      "ordinal": 49,
+      "ordinal": 58,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Exponential Backoff and Jitter Engine",
@@ -642,7 +759,7 @@
     },
     {
       "id": "P54",
-      "ordinal": 50,
+      "ordinal": 59,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Local Webhook Ingestion Receiver",
@@ -655,7 +772,7 @@
     },
     {
       "id": "P55",
-      "ordinal": 51,
+      "ordinal": 60,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Cryptographic Webhook Validator",
@@ -668,7 +785,7 @@
     },
     {
       "id": "P56",
-      "ordinal": 52,
+      "ordinal": 61,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Multi-API Orchestration Pipeline",
@@ -681,7 +798,7 @@
     },
     {
       "id": "P57",
-      "ordinal": 53,
+      "ordinal": 62,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Complete OAuth2 Authorization Manager",
@@ -694,7 +811,7 @@
     },
     {
       "id": "P58",
-      "ordinal": 54,
+      "ordinal": 63,
       "phase": 5,
       "phase_title": "API Engineering and Integration Systems",
       "title": "Centralized API Health and Uptime Monitor",
@@ -707,7 +824,7 @@
     },
     {
       "id": "P59",
-      "ordinal": 55,
+      "ordinal": 64,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Embedded Relational Database Core",
@@ -720,7 +837,7 @@
     },
     {
       "id": "P60",
-      "ordinal": 56,
+      "ordinal": 65,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Programmatic Database CRUD Layer",
@@ -733,7 +850,7 @@
     },
     {
       "id": "P61",
-      "ordinal": 57,
+      "ordinal": 66,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Customer Identity Database Architecture",
@@ -746,7 +863,7 @@
     },
     {
       "id": "P62",
-      "ordinal": 58,
+      "ordinal": 67,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Sales Pipeline and Opportunity Ledger",
@@ -759,7 +876,7 @@
     },
     {
       "id": "P63",
-      "ordinal": 59,
+      "ordinal": 68,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Analytical Aggregation Query Suite",
@@ -772,7 +889,7 @@
     },
     {
       "id": "P64",
-      "ordinal": 60,
+      "ordinal": 69,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Schema Normalization and Index Optimization",
@@ -785,7 +902,7 @@
     },
     {
       "id": "P65",
-      "ordinal": 61,
+      "ordinal": 70,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Heterogeneous Database Migration Engine",
@@ -798,7 +915,7 @@
     },
     {
       "id": "P66",
-      "ordinal": 62,
+      "ordinal": 71,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "ACID-Compliant Transaction Engine",
@@ -811,7 +928,7 @@
     },
     {
       "id": "P67",
-      "ordinal": 63,
+      "ordinal": 72,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Database-Backed REST Application API",
@@ -824,7 +941,7 @@
     },
     {
       "id": "P68",
-      "ordinal": 64,
+      "ordinal": 73,
       "phase": 6,
       "phase_title": "Databases and Relational SQL Engineering",
       "title": "Automation State Management Engine",
@@ -837,7 +954,7 @@
     },
     {
       "id": "P69",
-      "ordinal": 65,
+      "ordinal": 74,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Workflow Orchestration Hello World",
@@ -850,7 +967,7 @@
     },
     {
       "id": "P70",
-      "ordinal": 66,
+      "ordinal": 75,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Inbound Form Capture and Dispatch",
@@ -863,7 +980,7 @@
     },
     {
       "id": "P71",
-      "ordinal": 67,
+      "ordinal": 76,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Form-to-Spreadsheet Ingestion Pipeline",
@@ -876,7 +993,7 @@
     },
     {
       "id": "P72",
-      "ordinal": 68,
+      "ordinal": 77,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Multi-Channel Alert Router",
@@ -889,7 +1006,7 @@
     },
     {
       "id": "P73",
-      "ordinal": 69,
+      "ordinal": 78,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Conditional Lead Filtering Engine",
@@ -902,7 +1019,7 @@
     },
     {
       "id": "P74",
-      "ordinal": 70,
+      "ordinal": 79,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Multi-Path Payload Priority Switch",
@@ -915,7 +1032,7 @@
     },
     {
       "id": "P75",
-      "ordinal": 71,
+      "ordinal": 80,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Threshold-Driven Dynamic Notifier",
@@ -928,7 +1045,7 @@
     },
     {
       "id": "P76",
-      "ordinal": 72,
+      "ordinal": 81,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Parallel Complex Routing Matrix",
@@ -941,7 +1058,7 @@
     },
     {
       "id": "P77",
-      "ordinal": 73,
+      "ordinal": 82,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Batch CSV File Ingestion Pipeline",
@@ -954,7 +1071,7 @@
     },
     {
       "id": "P78",
-      "ordinal": 74,
+      "ordinal": 83,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "REST Transformation and Database Loader",
@@ -967,7 +1084,7 @@
     },
     {
       "id": "P79",
-      "ordinal": 75,
+      "ordinal": 84,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Database-Triggered Synchronization Pipeline",
@@ -980,7 +1097,7 @@
     },
     {
       "id": "P80",
-      "ordinal": 76,
+      "ordinal": 85,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Scheduled Maintenance and Archival Workflow",
@@ -993,7 +1110,7 @@
     },
     {
       "id": "P81",
-      "ordinal": 77,
+      "ordinal": 86,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Dedicated Webhook Ingestion Service",
@@ -1006,7 +1123,7 @@
     },
     {
       "id": "P82",
-      "ordinal": 78,
+      "ordinal": 87,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Webhook-to-CRM Lead Provisioner",
@@ -1019,7 +1136,7 @@
     },
     {
       "id": "P83",
-      "ordinal": 79,
+      "ordinal": 88,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Webhook Signature Authentication Gate",
@@ -1032,7 +1149,7 @@
     },
     {
       "id": "P84",
-      "ordinal": 80,
+      "ordinal": 89,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "High-Throughput Event Multiplexer",
@@ -1045,7 +1162,7 @@
     },
     {
       "id": "P85",
-      "ordinal": 81,
+      "ordinal": 90,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Automated Node-Level Retry Workflow",
@@ -1058,7 +1175,7 @@
     },
     {
       "id": "P86",
-      "ordinal": 82,
+      "ordinal": 91,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Dedicated Error Trigger Workflow",
@@ -1071,7 +1188,7 @@
     },
     {
       "id": "P87",
-      "ordinal": 83,
+      "ordinal": 92,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Multi-Tiered Failure Alert Escalation",
@@ -1084,7 +1201,7 @@
     },
     {
       "id": "P88",
-      "ordinal": 84,
+      "ordinal": 93,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Dead-Letter Storage and Quarantine Engine",
@@ -1097,7 +1214,7 @@
     },
     {
       "id": "P89",
-      "ordinal": 85,
+      "ordinal": 94,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Idempotent Workflow Execution Gate",
@@ -1110,7 +1227,7 @@
     },
     {
       "id": "P90",
-      "ordinal": 86,
+      "ordinal": 95,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Sub-Workflow Execution Modularization",
@@ -1123,7 +1240,7 @@
     },
     {
       "id": "P91",
-      "ordinal": 87,
+      "ordinal": 96,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Standardized Reusable Workflow Component",
@@ -1136,7 +1253,7 @@
     },
     {
       "id": "P92",
-      "ordinal": 88,
+      "ordinal": 97,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Multi-Workflow Event-Driven Architecture",
@@ -1149,7 +1266,7 @@
     },
     {
       "id": "P93",
-      "ordinal": 89,
+      "ordinal": 98,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Human-in-the-Loop Approval Workflow",
@@ -1162,7 +1279,7 @@
     },
     {
       "id": "P94",
-      "ordinal": 90,
+      "ordinal": 99,
       "phase": 7,
       "phase_title": "Workflow Automation Engineering with n8n",
       "title": "Immutable Automation Audit Trail",
@@ -1175,7 +1292,7 @@
     },
     {
       "id": "P95",
-      "ordinal": 91,
+      "ordinal": 100,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "High-Velocity Lead Lifecycle Engine",
@@ -1188,7 +1305,7 @@
     },
     {
       "id": "P96",
-      "ordinal": 92,
+      "ordinal": 101,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "End-to-End Customer Onboarding Pipeline",
@@ -1201,7 +1318,7 @@
     },
     {
       "id": "P97",
-      "ordinal": 93,
+      "ordinal": 102,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "Dynamic Support Ticket Dispatcher",
@@ -1214,7 +1331,7 @@
     },
     {
       "id": "P98",
-      "ordinal": 94,
+      "ordinal": 103,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "Financial Invoice Matching Engine",
@@ -1227,7 +1344,7 @@
     },
     {
       "id": "P99",
-      "ordinal": 95,
+      "ordinal": 104,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "Multi-Tier Approval Matrix System",
@@ -1240,7 +1357,7 @@
     },
     {
       "id": "P100",
-      "ordinal": 96,
+      "ordinal": 105,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "Internal Service Request Portal Pipeline",
@@ -1253,7 +1370,7 @@
     },
     {
       "id": "P101",
-      "ordinal": 97,
+      "ordinal": 106,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "Employee Lifecycle Provisioning Engine",
@@ -1266,7 +1383,7 @@
     },
     {
       "id": "P102",
-      "ordinal": 98,
+      "ordinal": 107,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "Automated Business KPI Reporting System",
@@ -1279,7 +1396,7 @@
     },
     {
       "id": "P103",
-      "ordinal": 99,
+      "ordinal": 108,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "SLA Breach Escalation Daemon",
@@ -1292,7 +1409,7 @@
     },
     {
       "id": "P104",
-      "ordinal": 100,
+      "ordinal": 109,
       "phase": 8,
       "phase_title": "Business Process Automation and Analysis",
       "title": "Comprehensive Business Process Audit",
@@ -1305,7 +1422,7 @@
     },
     {
       "id": "P105",
-      "ordinal": 101,
+      "ordinal": 110,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Enterprise Contact Schema Architecture",
@@ -1318,7 +1435,7 @@
     },
     {
       "id": "P106",
-      "ordinal": 102,
+      "ordinal": 111,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Omnichannel Inbound Lead Capture Engine",
@@ -1331,7 +1448,7 @@
     },
     {
       "id": "P107",
-      "ordinal": 103,
+      "ordinal": 112,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Automated Multi-Stage Sales Pipeline",
@@ -1344,7 +1461,7 @@
     },
     {
       "id": "P108",
-      "ordinal": 104,
+      "ordinal": 113,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Dynamic Appointment Scheduling Engine",
@@ -1357,7 +1474,7 @@
     },
     {
       "id": "P109",
-      "ordinal": 105,
+      "ordinal": 114,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Programmatic Lead Qualification Engine",
@@ -1370,7 +1487,7 @@
     },
     {
       "id": "P110",
-      "ordinal": 106,
+      "ordinal": 115,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Conversational Follow-Up Sequence",
@@ -1383,7 +1500,7 @@
     },
     {
       "id": "P111",
-      "ordinal": 107,
+      "ordinal": 116,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Post-Sale Client Onboarding Flow",
@@ -1396,7 +1513,7 @@
     },
     {
       "id": "P112",
-      "ordinal": 108,
+      "ordinal": 117,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Executive CRM Operational Dashboard",
@@ -1409,7 +1526,7 @@
     },
     {
       "id": "P113",
-      "ordinal": 109,
+      "ordinal": 118,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "GHL to n8n Webhook Integration",
@@ -1422,7 +1539,7 @@
     },
     {
       "id": "P114",
-      "ordinal": 110,
+      "ordinal": 119,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Bidirectional GHL Database Synchronizer",
@@ -1435,7 +1552,7 @@
     },
     {
       "id": "P115",
-      "ordinal": 111,
+      "ordinal": 120,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "Direct Python SDK/API Integration with GHL",
@@ -1448,7 +1565,7 @@
     },
     {
       "id": "P116",
-      "ordinal": 112,
+      "ordinal": 121,
       "phase": 9,
       "phase_title": "GoHighLevel (GHL) and CRM Operations Engineering",
       "title": "AI-Augmented CRM Qualification System",
@@ -1461,7 +1578,7 @@
     },
     {
       "id": "P117",
-      "ordinal": 113,
+      "ordinal": 122,
       "phase": 10,
       "phase_title": "JavaScript and TypeScript for Automation Extensibility",
       "title": "Modern JavaScript Functional Transformations",
@@ -1474,7 +1591,7 @@
     },
     {
       "id": "P118",
-      "ordinal": 114,
+      "ordinal": 123,
       "phase": 10,
       "phase_title": "JavaScript and TypeScript for Automation Extensibility",
       "title": "Asynchronous Network Request Handler",
@@ -1487,7 +1604,7 @@
     },
     {
       "id": "P119",
-      "ordinal": 115,
+      "ordinal": 124,
       "phase": 10,
       "phase_title": "JavaScript and TypeScript for Automation Extensibility",
       "title": "Non-Blocking Stream Processor",
@@ -1500,7 +1617,7 @@
     },
     {
       "id": "P120",
-      "ordinal": 116,
+      "ordinal": 125,
       "phase": 10,
       "phase_title": "JavaScript and TypeScript for Automation Extensibility",
       "title": "Advanced n8n JavaScript Code Node",
@@ -1513,7 +1630,7 @@
     },
     {
       "id": "P121",
-      "ordinal": 117,
+      "ordinal": 126,
       "phase": 10,
       "phase_title": "JavaScript and TypeScript for Automation Extensibility",
       "title": "Shared Automation Helper Library",
@@ -1526,7 +1643,7 @@
     },
     {
       "id": "P122",
-      "ordinal": 118,
+      "ordinal": 127,
       "phase": 10,
       "phase_title": "JavaScript and TypeScript for Automation Extensibility",
       "title": "Strongly-Typed TypeScript API Client",
@@ -1539,7 +1656,7 @@
     },
     {
       "id": "P123",
-      "ordinal": 119,
+      "ordinal": 128,
       "phase": 10,
       "phase_title": "JavaScript and TypeScript for Automation Extensibility",
       "title": "Enterprise Automation Utility Module",
@@ -1552,7 +1669,7 @@
     },
     {
       "id": "P124",
-      "ordinal": 120,
+      "ordinal": 129,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Deterministic Text Classifier",
@@ -1565,7 +1682,7 @@
     },
     {
       "id": "P125",
-      "ordinal": 121,
+      "ordinal": 130,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Entity Extraction Pipeline",
@@ -1578,7 +1695,7 @@
     },
     {
       "id": "P126",
-      "ordinal": 122,
+      "ordinal": 131,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Intelligent Inbound Email Triage System",
@@ -1591,7 +1708,7 @@
     },
     {
       "id": "P127",
-      "ordinal": 123,
+      "ordinal": 132,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Contextual Auto-Response Draft Engine",
@@ -1604,7 +1721,7 @@
     },
     {
       "id": "P128",
-      "ordinal": 124,
+      "ordinal": 133,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Multi-Speaker Transcript Summarizer",
@@ -1617,7 +1734,7 @@
     },
     {
       "id": "P129",
-      "ordinal": 125,
+      "ordinal": 134,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Programmatic Data Cleaning via LLM",
@@ -1630,7 +1747,7 @@
     },
     {
       "id": "P130",
-      "ordinal": 126,
+      "ordinal": 135,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Strict JSON Schema-Enforced AI Engine",
@@ -1643,7 +1760,7 @@
     },
     {
       "id": "P131",
-      "ordinal": 127,
+      "ordinal": 136,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Dynamic Intent-Driven Workflow Router",
@@ -1656,7 +1773,7 @@
     },
     {
       "id": "P132",
-      "ordinal": 128,
+      "ordinal": 137,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Automated LLM Response Auditor",
@@ -1669,7 +1786,7 @@
     },
     {
       "id": "P133",
-      "ordinal": 129,
+      "ordinal": 138,
       "phase": 11,
       "phase_title": "AI and Large Language Model Engineering",
       "title": "Human-in-the-Loop AI Escalation System",
@@ -1682,7 +1799,7 @@
     },
     {
       "id": "P134",
-      "ordinal": 130,
+      "ordinal": 139,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "AI-Powered Lead Scoring Pipeline",
@@ -1695,7 +1812,7 @@
     },
     {
       "id": "P135",
-      "ordinal": 131,
+      "ordinal": 140,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "Automated Email Inbox Triage Pipeline",
@@ -1708,7 +1825,7 @@
     },
     {
       "id": "P136",
-      "ordinal": 132,
+      "ordinal": 141,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "Intelligent Multi-Queue Support Dispatcher",
@@ -1721,7 +1838,7 @@
     },
     {
       "id": "P137",
-      "ordinal": 133,
+      "ordinal": 142,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "AI-Augmented CRM Sales Assistant",
@@ -1734,7 +1851,7 @@
     },
     {
       "id": "P138",
-      "ordinal": 134,
+      "ordinal": 143,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "Proactive Outbound Prospect Researcher",
@@ -1747,7 +1864,7 @@
     },
     {
       "id": "P139",
-      "ordinal": 135,
+      "ordinal": 144,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "Semi-Structured Document Extraction Engine",
@@ -1760,7 +1877,7 @@
     },
     {
       "id": "P140",
-      "ordinal": 136,
+      "ordinal": 145,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "Accounts Payable Invoice Automation System",
@@ -1773,7 +1890,7 @@
     },
     {
       "id": "P141",
-      "ordinal": 137,
+      "ordinal": 146,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "Automated Meeting Debrief and Task Dispatcher",
@@ -1786,7 +1903,7 @@
     },
     {
       "id": "P142",
-      "ordinal": 138,
+      "ordinal": 147,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "AI-Powered Dynamic Customer Onboarding",
@@ -1799,7 +1916,7 @@
     },
     {
       "id": "P143",
-      "ordinal": 139,
+      "ordinal": 148,
       "phase": 12,
       "phase_title": "Integrated AI Automation Systems",
       "title": "Continuous Operations Log Auditor",
@@ -1812,7 +1929,7 @@
     },
     {
       "id": "P144",
-      "ordinal": 140,
+      "ordinal": 149,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Text Embedding Space Explorer",
@@ -1825,7 +1942,7 @@
     },
     {
       "id": "P145",
-      "ordinal": 141,
+      "ordinal": 150,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Chunking Strategy and Document Indexer",
@@ -1838,7 +1955,7 @@
     },
     {
       "id": "P146",
-      "ordinal": 142,
+      "ordinal": 151,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Vector Similarity Search Engine",
@@ -1851,7 +1968,7 @@
     },
     {
       "id": "P147",
-      "ordinal": 143,
+      "ordinal": 152,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Foundational Grounded RAG Pipeline",
@@ -1864,7 +1981,7 @@
     },
     {
       "id": "P148",
-      "ordinal": 144,
+      "ordinal": 153,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Citation-Backed Knowledge Engine",
@@ -1877,7 +1994,7 @@
     },
     {
       "id": "P149",
-      "ordinal": 145,
+      "ordinal": 154,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Automated RAG Evaluation System",
@@ -1890,7 +2007,7 @@
     },
     {
       "id": "P150",
-      "ordinal": 146,
+      "ordinal": 155,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Business Knowledge Base Chat Assistant",
@@ -1903,7 +2020,7 @@
     },
     {
       "id": "P151",
-      "ordinal": 147,
+      "ordinal": 156,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Grounded CRM Knowledge Assistant",
@@ -1916,7 +2033,7 @@
     },
     {
       "id": "P152",
-      "ordinal": 148,
+      "ordinal": 157,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "SOP Search and Retrieval Interface",
@@ -1929,7 +2046,7 @@
     },
     {
       "id": "P153",
-      "ordinal": 149,
+      "ordinal": 158,
       "phase": 13,
       "phase_title": "Retrieval-Augmented Generation (RAG) and Vector Knowledge Systems",
       "title": "Automated RAG Ingestion and Sync Engine",
@@ -1942,7 +2059,7 @@
     },
     {
       "id": "P154",
-      "ordinal": 150,
+      "ordinal": 159,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Function Calling Foundation Engine",
@@ -1955,7 +2072,7 @@
     },
     {
       "id": "P155",
-      "ordinal": 151,
+      "ordinal": 160,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Tool-Assisted Math and Logic Engine",
@@ -1968,7 +2085,7 @@
     },
     {
       "id": "P156",
-      "ordinal": 152,
+      "ordinal": 161,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Autonomous Database Query Agent",
@@ -1981,7 +2098,7 @@
     },
     {
       "id": "P157",
-      "ordinal": 153,
+      "ordinal": 162,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Multi-Source Web Research Agent",
@@ -1994,7 +2111,7 @@
     },
     {
       "id": "P158",
-      "ordinal": 154,
+      "ordinal": 163,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Action-Oriented CRM Management Agent",
@@ -2007,7 +2124,7 @@
     },
     {
       "id": "P159",
-      "ordinal": 155,
+      "ordinal": 164,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Autonomous Support Resolution Agent",
@@ -2020,7 +2137,7 @@
     },
     {
       "id": "P160",
-      "ordinal": 156,
+      "ordinal": 165,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Multi-Tool Orchestration Agent",
@@ -2033,7 +2150,7 @@
     },
     {
       "id": "P161",
-      "ordinal": 157,
+      "ordinal": 166,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Human-in-the-Loop Supervised Agent",
@@ -2046,7 +2163,7 @@
     },
     {
       "id": "P162",
-      "ordinal": 158,
+      "ordinal": 167,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Stateful Conversational Agent with Memory",
@@ -2059,7 +2176,7 @@
     },
     {
       "id": "P163",
-      "ordinal": 159,
+      "ordinal": 168,
       "phase": 14,
       "phase_title": "Autonomous AI Agents and Dynamic Tool Calling",
       "title": "Comprehensive Agent Evaluation Harness",
@@ -2072,7 +2189,7 @@
     },
     {
       "id": "P164",
-      "ordinal": 160,
+      "ordinal": 169,
       "phase": 15,
       "phase_title": "Advanced Distributed Automation Architecture",
       "title": "Event-Driven Message Broker Integration",
@@ -2085,7 +2202,7 @@
     },
     {
       "id": "P165",
-      "ordinal": 161,
+      "ordinal": 170,
       "phase": 15,
       "phase_title": "Advanced Distributed Automation Architecture",
       "title": "Persistent Background Task Queue",
@@ -2098,7 +2215,7 @@
     },
     {
       "id": "P166",
-      "ordinal": 162,
+      "ordinal": 171,
       "phase": 15,
       "phase_title": "Advanced Distributed Automation Architecture",
       "title": "Persistent Finite State Machine (FSM)",
@@ -2111,7 +2228,7 @@
     },
     {
       "id": "P167",
-      "ordinal": 163,
+      "ordinal": 172,
       "phase": 15,
       "phase_title": "Advanced Distributed Automation Architecture",
       "title": "Multi-Service Enterprise Pipeline",
@@ -2124,7 +2241,7 @@
     },
     {
       "id": "P168",
-      "ordinal": 164,
+      "ordinal": 173,
       "phase": 15,
       "phase_title": "Advanced Distributed Automation Architecture",
       "title": "Centralized Workflow Orchestration Master",
@@ -2137,7 +2254,7 @@
     },
     {
       "id": "P169",
-      "ordinal": 165,
+      "ordinal": 174,
       "phase": 15,
       "phase_title": "Advanced Distributed Automation Architecture",
       "title": "Automated Recovery and Compensation Engine",
@@ -2150,7 +2267,7 @@
     },
     {
       "id": "P170",
-      "ordinal": 166,
+      "ordinal": 175,
       "phase": 15,
       "phase_title": "Advanced Distributed Automation Architecture",
       "title": "Enterprise-Scale High-Volume Pipeline",
@@ -2163,7 +2280,7 @@
     },
     {
       "id": "P171",
-      "ordinal": 167,
+      "ordinal": 176,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Core Automation Unit Testing Suite",
@@ -2176,7 +2293,7 @@
     },
     {
       "id": "P172",
-      "ordinal": 168,
+      "ordinal": 177,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Synthetic API Mocking and Integration Tests",
@@ -2189,7 +2306,7 @@
     },
     {
       "id": "P173",
-      "ordinal": 169,
+      "ordinal": 178,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Programmatic n8n Workflow Validation Test",
@@ -2202,7 +2319,7 @@
     },
     {
       "id": "P174",
-      "ordinal": 170,
+      "ordinal": 179,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Probabilistic LLM Output Evaluation Suite",
@@ -2215,7 +2332,7 @@
     },
     {
       "id": "P175",
-      "ordinal": 171,
+      "ordinal": 180,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Automated Retrieval Performance Benchmark",
@@ -2228,7 +2345,7 @@
     },
     {
       "id": "P176",
-      "ordinal": 172,
+      "ordinal": 181,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Agent Behavior and Tool-Use Test Harness",
@@ -2241,7 +2358,7 @@
     },
     {
       "id": "P177",
-      "ordinal": 173,
+      "ordinal": 182,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Automated Continuous Regression Suite",
@@ -2254,7 +2371,7 @@
     },
     {
       "id": "P178",
-      "ordinal": 174,
+      "ordinal": 183,
       "phase": 16,
       "phase_title": "Verification, Testing, and Evaluation",
       "title": "Chaos Engineering and Failure Injection Lab",
@@ -2267,7 +2384,7 @@
     },
     {
       "id": "P179",
-      "ordinal": 175,
+      "ordinal": 184,
       "phase": 17,
       "phase_title": "Production Security, Authentication, and Compliance",
       "title": "Production Secrets and Key Vault Management",
@@ -2280,7 +2397,7 @@
     },
     {
       "id": "P180",
-      "ordinal": 176,
+      "ordinal": 185,
       "phase": 17,
       "phase_title": "Production Security, Authentication, and Compliance",
       "title": "Cryptographic Webhook Security Suite",
@@ -2293,7 +2410,7 @@
     },
     {
       "id": "P181",
-      "ordinal": 177,
+      "ordinal": 186,
       "phase": 17,
       "phase_title": "Production Security, Authentication, and Compliance",
       "title": "Zero-Trust Role-Based Access Control (RBAC)",
@@ -2306,7 +2423,7 @@
     },
     {
       "id": "P182",
-      "ordinal": 178,
+      "ordinal": 187,
       "phase": 17,
       "phase_title": "Production Security, Authentication, and Compliance",
       "title": "SQL and Command Injection Defense Suite",
@@ -2319,7 +2436,7 @@
     },
     {
       "id": "P183",
-      "ordinal": 179,
+      "ordinal": 188,
       "phase": 17,
       "phase_title": "Production Security, Authentication, and Compliance",
       "title": "Prompt Injection and Jailbreak Firewall",
@@ -2332,7 +2449,7 @@
     },
     {
       "id": "P184",
-      "ordinal": 180,
+      "ordinal": 189,
       "phase": 17,
       "phase_title": "Production Security, Authentication, and Compliance",
       "title": "Automated PII Masking and Data Redaction Engine",
@@ -2345,7 +2462,7 @@
     },
     {
       "id": "P185",
-      "ordinal": 181,
+      "ordinal": 190,
       "phase": 17,
       "phase_title": "Production Security, Authentication, and Compliance",
       "title": "Comprehensive Automation Security Audit",
@@ -2358,7 +2475,7 @@
     },
     {
       "id": "P186",
-      "ordinal": 182,
+      "ordinal": 191,
       "phase": 18,
       "phase_title": "Containerization, Infrastructure, and Cloud Deployment",
       "title": "Multi-Stage Python Docker Container",
@@ -2371,7 +2488,7 @@
     },
     {
       "id": "P187",
-      "ordinal": 183,
+      "ordinal": 192,
       "phase": 18,
       "phase_title": "Containerization, Infrastructure, and Cloud Deployment",
       "title": "Containerized REST Integration Service",
@@ -2384,7 +2501,7 @@
     },
     {
       "id": "P188",
-      "ordinal": 184,
+      "ordinal": 193,
       "phase": 18,
       "phase_title": "Containerization, Infrastructure, and Cloud Deployment",
       "title": "Multi-Container Automation Stack",
@@ -2397,7 +2514,7 @@
     },
     {
       "id": "P189",
-      "ordinal": 185,
+      "ordinal": 194,
       "phase": 18,
       "phase_title": "Containerization, Infrastructure, and Cloud Deployment",
       "title": "Self-Hosted n8n Production Stack",
@@ -2410,7 +2527,7 @@
     },
     {
       "id": "P190",
-      "ordinal": 186,
+      "ordinal": 195,
       "phase": 18,
       "phase_title": "Containerization, Infrastructure, and Cloud Deployment",
       "title": "Automated Production Reverse Proxy Setup",
@@ -2423,7 +2540,7 @@
     },
     {
       "id": "P191",
-      "ordinal": 187,
+      "ordinal": 196,
       "phase": 18,
       "phase_title": "Containerization, Infrastructure, and Cloud Deployment",
       "title": "Cloud Virtual Private Server (VPS) Deployment",
@@ -2436,7 +2553,7 @@
     },
     {
       "id": "P192",
-      "ordinal": 188,
+      "ordinal": 197,
       "phase": 18,
       "phase_title": "Containerization, Infrastructure, and Cloud Deployment",
       "title": "Automated Git-Driven Continuous Deployment",
@@ -2449,7 +2566,7 @@
     },
     {
       "id": "P193",
-      "ordinal": 189,
+      "ordinal": 198,
       "phase": 19,
       "phase_title": "Operational Observability, Monitoring, and System Reliability",
       "title": "Centralized Log Aggregation Pipeline",
@@ -2462,7 +2579,7 @@
     },
     {
       "id": "P194",
-      "ordinal": 190,
+      "ordinal": 199,
       "phase": 19,
       "phase_title": "Operational Observability, Monitoring, and System Reliability",
       "title": "Synthetic System Health Prober",
@@ -2475,7 +2592,7 @@
     },
     {
       "id": "P195",
-      "ordinal": 191,
+      "ordinal": 200,
       "phase": 19,
       "phase_title": "Operational Observability, Monitoring, and System Reliability",
       "title": "Operational Automation Metrics Dashboard",
@@ -2488,7 +2605,7 @@
     },
     {
       "id": "P196",
-      "ordinal": 192,
+      "ordinal": 201,
       "phase": 19,
       "phase_title": "Operational Observability, Monitoring, and System Reliability",
       "title": "Intelligent Operational Alerting Engine",
@@ -2501,7 +2618,7 @@
     },
     {
       "id": "P197",
-      "ordinal": 193,
+      "ordinal": 202,
       "phase": 19,
       "phase_title": "Operational Observability, Monitoring, and System Reliability",
       "title": "AI Token and Cost Tracking System",
@@ -2514,7 +2631,7 @@
     },
     {
       "id": "P198",
-      "ordinal": 194,
+      "ordinal": 203,
       "phase": 19,
       "phase_title": "Operational Observability, Monitoring, and System Reliability",
       "title": "Circuit Breaker Reliability Pattern",
@@ -2527,7 +2644,7 @@
     },
     {
       "id": "P199",
-      "ordinal": 195,
+      "ordinal": 204,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "Operational Process Discovery Lab",
@@ -2540,7 +2657,7 @@
     },
     {
       "id": "P200",
-      "ordinal": 196,
+      "ordinal": 205,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "Automation Opportunity Assessment",
@@ -2553,7 +2670,7 @@
     },
     {
       "id": "P201",
-      "ordinal": 197,
+      "ordinal": 206,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "Financial ROI and Payback Modeling",
@@ -2566,7 +2683,7 @@
     },
     {
       "id": "P202",
-      "ordinal": 198,
+      "ordinal": 207,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "Technical Requirements Specification",
@@ -2579,7 +2696,7 @@
     },
     {
       "id": "P203",
-      "ordinal": 199,
+      "ordinal": 208,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "System Architecture Design Document",
@@ -2592,7 +2709,7 @@
     },
     {
       "id": "P204",
-      "ordinal": 200,
+      "ordinal": 209,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "Client Commercial Proposal Package",
@@ -2605,7 +2722,7 @@
     },
     {
       "id": "P205",
-      "ordinal": 201,
+      "ordinal": 210,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "Production Handover Documentation",
@@ -2618,7 +2735,7 @@
     },
     {
       "id": "P206",
-      "ordinal": 202,
+      "ordinal": 211,
       "phase": 20,
       "phase_title": "Client Solutions Engineering, Discovery, and Technical Architecture",
       "title": "SLA and Maintenance Plan",

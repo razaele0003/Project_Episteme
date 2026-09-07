@@ -23,7 +23,7 @@ def test_fresh_workspace_has_no_repository(tmp_path,monkeypatch):
     monkeypatch.setattr(m,'DB_PATH',tmp_path/'fresh.sqlite3')
     data=TestClient(m.app).get('/api/progress').json()
     assert data['repository']=='' and data['root']==''
-    assert data['completed']==0 and data['total']==197 and data['percent']==0
+    assert data['completed']==0 and data['total']==206 and data['percent']==0
 
 
 def test_reset_clears_repository_progress_and_github_session(client,monkeypatch):
@@ -33,7 +33,7 @@ def test_reset_clears_repository_progress_and_github_session(client,monkeypatch)
     response=client.post('/api/reset',headers={'x-episteme-client':'dashboard'})
     assert response.status_code==200
     data=client.get('/api/progress').json()
-    assert data['repository']=='' and data['activity']==[] and data['completed']==0 and data['total']==197
+    assert data['repository']=='' and data['activity']==[] and data['completed']==0 and data['total']==206
     assert m.github_auth.token() is None
 
 def test_empty_and_stub_are_not_complete():
@@ -185,26 +185,29 @@ def test_repository_curriculum_adds_course_and_project_detail(client,monkeypatch
       }]}),
       '.episteme/projects.json':json.dumps({'projects':[
         {'project_id':'P001','project_folder':'projects/one'},
-        {'project_id':'P1-P10','project_folder':'projects/P1-P10'}
+        {'project_id':'P1','project_folder':'projects/P1'}
       ]}),
       'README.md':'### 1. Ohm archive\n\nExplain the first solution.\n',
       'projects/one/BRIEF.md':'Build the first solution.\n',
       'projects/one/README.md':'Explain the first solution.\n',
       'projects/one/main.py':'print(42)\n',
-      'projects/P1-P10/BRIEF.md':'Run the baseline assessment.\n',
-      'projects/P1-P10/README.md':'Document the assessment result.\n',
-      'projects/P1-P10/main.py':'print("assessment ready")\n'
+      'projects/P1/BRIEF.md':'Build the Ohm\'s law calculator.\n',
+      'projects/P1/README.md':'Document the calculator result.\n',
+      'projects/P1/main.py':'print("calculator ready")\n'
     }
     monkeypatch.setattr(m,'snapshot',lambda *args:('d'*40,files))
     response=client.post('/api/sync',headers={'x-episteme-client':'dashboard'})
     assert response.status_code==200
     progress=client.get('/api/progress').json()
-    assert len(progress['projects'])==203
+    assert len(progress['projects'])==212
     # Setup guidance and historical imports never inflate learning-project progress.
-    assert progress['completed']==1 and progress['total']==197 and progress['percent']==1
+    assert progress['completed']==1 and progress['total']==206 and progress['percent']==0
     assert progress['projects'][0]['title']=='Ohm archive'
     phase_zero=next(p for p in progress['projects'] if p['id']=='P0.1')
     assert phase_zero['title']=='Professional Development Environment'
+    assert next(p for p in progress['projects'] if p['id']=='P1')['title']=="Ohm's Law Calculator"
+    assert next(p for p in progress['projects'] if p['id']=='P10')['title']=='Resistor Color Decoder'
+    assert not any(p['id']=='P1-P10' for p in progress['projects'])
     detail=client.get('/api/projects/P001').json()
     assert detail['source']=='print(42)\n'
     assert detail['readme']=='Explain the first solution.\n'
