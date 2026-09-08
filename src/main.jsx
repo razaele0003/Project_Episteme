@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {ArrowLeft,ArrowRight,ArrowUpRight,BookOpen,Brain,Check,CheckCircle2,Circle,Clipboard,Code2,ExternalLink,FileText,GitBranch,Github,GraduationCap,LayoutDashboard,Map,RefreshCw,Route,Search,Settings,ShieldCheck,Sparkles,Target,Terminal,Trophy,Waypoints,X} from 'lucide-react';
+import {ArrowLeft,ArrowRight,ArrowUpRight,BookOpen,Brain,Check,CheckCircle2,Circle,Clipboard,Code2,ExternalLink,FileText,GitBranch,Github,GraduationCap,LayoutDashboard,Link2,Map,RefreshCw,Route,Save,Search,Settings,ShieldCheck,Sparkles,Target,Terminal,Trophy,Waypoints,X} from 'lucide-react';
 import './style.css';
 import GitHubAccount from './GitHubAccount.jsx';
 import logo from './assets/episteme-light.png';
@@ -19,16 +19,24 @@ function coachPrompt(project){
 }
 
 function ProjectCoach({project}){
- const [open,setOpen]=useState(false),[prompt,setPrompt]=useState(()=>coachPrompt(project)),[feedback,setFeedback]=useState('');
+ const storageKey=`episteme-coach-conversation:v1:${project.repository||'no-repository'}:${project.id}`;
+ const [open,setOpen]=useState(false),[prompt,setPrompt]=useState(()=>coachPrompt(project)),[conversationUrl,setConversationUrl]=useState(''),[conversationDraft,setConversationDraft]=useState(''),[feedback,setFeedback]=useState('');
  const promptRef=useRef(null),triggerRef=useRef(null);
- useEffect(()=>{setPrompt(coachPrompt(project));setFeedback('');},[project.id,project.repository,project.sha]);
+ useEffect(()=>{setPrompt(coachPrompt(project));const saved=localStorage.getItem(storageKey)||'';setConversationUrl(saved);setConversationDraft(saved);setFeedback('');},[project.id,project.repository,project.sha,storageKey]);
  useEffect(()=>{if(!open)return;promptRef.current?.focus();const close=e=>{if(e.key==='Escape'){setOpen(false);triggerRef.current?.focus();}};addEventListener('keydown',close);return()=>removeEventListener('keydown',close);},[open]);
- async function copyPrompt(){try{await navigator.clipboard.writeText(prompt);setFeedback('Prompt copied. Paste it into Episteme Coach and press Send.');}catch{setFeedback('Select the prompt and copy it before opening the Coach.');}}
- function openCoach(){
+ async function copyPrompt(message='Prompt copied. Paste it into Episteme Coach and press Send.'){try{await navigator.clipboard.writeText(prompt);setFeedback(message);return true;}catch{setFeedback('Select the prompt and copy it before opening the Coach.');return false;}}
+ function saveConversation(){
+  try{const url=new URL(conversationDraft.trim());if(url.protocol!=='https:'||url.hostname!=='chatgpt.com'||!url.pathname.includes('/c/'))throw new Error();localStorage.setItem(storageKey,url.href);setConversationUrl(url.href);setConversationDraft(url.href);setFeedback(`Saved for ${project.id} in this browser.`);}catch{setFeedback('Paste the ChatGPT conversation address. It should contain chatgpt.com and /c/.');}
+ }
+ function forgetConversation(){localStorage.removeItem(storageKey);setConversationUrl('');setConversationDraft('');setFeedback(`Saved chat removed for ${project.id}.`);}
+ async function openCoach(){
   const width=Math.min(580,Math.max(360,screen.availWidth-32)),height=Math.min(780,Math.max(560,screen.availHeight-48));
   const left=Math.max(0,screen.availWidth-width-24),top=Math.max(0,Math.round((screen.availHeight-height)/2));
-  const popup=window.open(coachUrl,'episteme-coach',`popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-  if(popup){popup.focus();copyPrompt();}else setFeedback('The popup was blocked. Allow popups for Episteme, then try again.');
+  const popup=window.open(conversationUrl||coachUrl,`episteme-coach-${project.id}`,`popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+  if(!popup){setFeedback('The popup was blocked. Allow popups for Episteme, then try again.');return;}
+  popup.focus();
+  if(conversationUrl)setFeedback(`Continuing the saved ${project.id} review chat.`);
+  else await copyPrompt('New Coach chat opened and the review prompt was copied. After you send it, copy the ChatGPT address and save it here once.');
  }
  function closePanel(){setOpen(false);requestAnimationFrame(()=>triggerRef.current?.focus());}
  return <div className={'project-coach '+(open?'open':'')}>
@@ -38,7 +46,8 @@ function ProjectCoach({project}){
    <label htmlFor={`coach-prompt-${project.id}`}>Review prompt</label>
    <textarea ref={promptRef} id={`coach-prompt-${project.id}`} value={prompt} onChange={event=>setPrompt(event.target.value)} rows="9"/>
    <p className="coach-help">The prompt is copied when the Coach opens. Paste it into ChatGPT and press Send.</p>
-   <div className="coach-actions"><button onClick={copyPrompt}><Clipboard size={16} aria-hidden="true"/>Copy prompt</button><button className="primary" onClick={openCoach}><ExternalLink size={16} aria-hidden="true"/>Copy &amp; open Coach</button></div>
+   <div className="coach-conversation"><div className="coach-conversation-heading"><span><Link2 size={14} aria-hidden="true"/>Project chat link</span><small>{conversationUrl?'Saved locally':'Not saved yet'}</small></div><div className="coach-link-row"><input type="url" value={conversationDraft} onChange={event=>setConversationDraft(event.target.value)} placeholder="Paste this project's ChatGPT conversation link" aria-label={`ChatGPT conversation link for ${project.id}`}/><button onClick={saveConversation}><Save size={15} aria-hidden="true"/>Save</button></div>{conversationUrl&&<button className="coach-forget" onClick={forgetConversation}>Forget saved link</button>}</div>
+   <div className="coach-actions"><button onClick={()=>copyPrompt()}><Clipboard size={16} aria-hidden="true"/>Copy prompt</button><button className="primary" onClick={openCoach}><ExternalLink size={16} aria-hidden="true"/>{conversationUrl?'Continue saved chat':'Start new review'}</button></div>
    <p className="coach-feedback" aria-live="polite">{feedback}</p>
    <footer>After the Coach accepts your explanation, update <code>README.md</code>, push to GitHub, then sync Episteme.</footer>
   </section>}
