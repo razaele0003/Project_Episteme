@@ -15,7 +15,7 @@ const coachUrl='https://chatgpt.com/g/g-6a9f41e9c53881919650df6c730761f0-epistem
 function coachPrompt(project){
  const repository=project.repository||'OWNER/REPOSITORY';
  const commit=project.sha?` at commit ${project.sha}`:'';
- return `Use GitHub to inspect ${repository}${commit}. Review current ${project.id} (${project.title}) in my practice repository. Open .episteme/projects.json, find the exact ${project.id} mapping, and read BRIEF.md, main.py, and README.md from its mapped folder. Compare my work with the Project Episteme curriculum requirements and expected output. Tell me what is correct and what needs revision. If you cannot verify execution, give me the exact test command and ask me to paste the real output. If the project files and test evidence are correct, say "Ready for explanation" and ask me to explain how my solution works and one limitation. After my explanation is satisfactory, help me improve README.md and say "Project evidence complete." Do not mark the project complete from a screenshot or file presence alone.`;
+ return `Review ${project.id} — ${project.title} in my GitHub repository ${repository}${commit}. Verify my work and guide me through the next step.`;
 }
 
 function ProjectCoach({project}){
