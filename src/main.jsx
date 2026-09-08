@@ -32,11 +32,12 @@ function ProjectCoach({project}){
  async function openCoach(){
   const width=Math.min(580,Math.max(360,screen.availWidth-32)),height=Math.min(780,Math.max(560,screen.availHeight-48));
   const left=Math.max(0,screen.availWidth-width-24),top=Math.max(0,Math.round((screen.availHeight-height)/2));
-  const popup=window.open(conversationUrl||coachUrl,`episteme-coach-${project.id}`,`popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+  const targetUrl=conversationUrl||`${coachUrl}?prompt=${encodeURIComponent(prompt)}`;
+  const popup=window.open(targetUrl,`episteme-coach-${project.id}`,`popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
   if(!popup){setFeedback('The popup was blocked. Allow popups for Episteme, then try again.');return;}
   popup.focus();
   if(conversationUrl)setFeedback(`Continuing the saved ${project.id} review chat.`);
-  else await copyPrompt('New Coach chat opened and the review prompt was copied. After you send it, copy the ChatGPT address and save it here once.');
+  else await copyPrompt('New Coach chat opened with the review prompt filled in. Press Send, then copy the ChatGPT address and save it here once.');
  }
  function closePanel(){setOpen(false);requestAnimationFrame(()=>triggerRef.current?.focus());}
  return <div className={'project-coach '+(open?'open':'')}>
@@ -45,7 +46,7 @@ function ProjectCoach({project}){
    <div className="coach-status"><span className={'status '+project.status}><span/>{labels[project.status]}</span><p>{project.repository?`Review ${project.repository} using the latest synced commit.`:'Connect a repository to replace the placeholder automatically.'}</p></div>
    <label htmlFor={`coach-prompt-${project.id}`}>Review prompt</label>
    <textarea ref={promptRef} id={`coach-prompt-${project.id}`} value={prompt} onChange={event=>setPrompt(event.target.value)} rows="9"/>
-   <p className="coach-help">The prompt is copied when the Coach opens. Paste it into ChatGPT and press Send.</p>
+   <p className="coach-help">A new Coach chat opens with this prompt filled in. Review it, then press Send yourself.</p>
    <div className="coach-conversation"><div className="coach-conversation-heading"><span><Link2 size={14} aria-hidden="true"/>Project chat link</span><small>{conversationUrl?'Saved locally':'Not saved yet'}</small></div><div className="coach-link-row"><input type="url" value={conversationDraft} onChange={event=>setConversationDraft(event.target.value)} placeholder="Paste this project's ChatGPT conversation link" aria-label={`ChatGPT conversation link for ${project.id}`}/><button onClick={saveConversation}><Save size={15} aria-hidden="true"/>Save</button></div>{conversationUrl&&<button className="coach-forget" onClick={forgetConversation}>Forget saved link</button>}</div>
    <div className="coach-actions"><button onClick={()=>copyPrompt()}><Clipboard size={16} aria-hidden="true"/>Copy prompt</button><button className="primary" onClick={openCoach}><ExternalLink size={16} aria-hidden="true"/>{conversationUrl?'Continue saved chat':'Start new review'}</button></div>
    <p className="coach-feedback" aria-live="polite">{feedback}</p>
