@@ -511,6 +511,13 @@ async def webhook(request: Request):
 if (ROOT / 'dist/assets').exists():
     app.mount('/assets',StaticFiles(directory=ROOT / 'dist/assets'),name='assets')
 
+@app.get('/favicon.png',include_in_schema=False)
+def favicon():
+    path=ROOT / 'dist/favicon.png'
+    if not path.exists():
+        raise HTTPException(404,'Favicon not built.')
+    return FileResponse(path,media_type='image/png')
+
 @app.get('/')
 def index():
     if not (ROOT / 'dist/index.html').exists():
