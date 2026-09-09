@@ -80,18 +80,3 @@ export async function workspaceFetch(path, options = {}) {
     return response({detail: error.message || 'Workspace unavailable. Previous progress was kept.'}, 503);
   }
 }
-
-export async function exportWorkspace() {
-  const db = await database();
-  const records = await new Promise((resolve, reject) => {
-    const tx = db.transaction('records');
-    const store = tx.objectStore('records');
-    const keys = store.getAllKeys(), values = store.getAll();
-    tx.oncomplete = () => resolve(keys.result.map((key, index) => [key, values.result[index]]));
-    tx.onerror = () => reject(new Error('Could not export saved progress.'));
-  });
-  const blob = new Blob([JSON.stringify({format: 'episteme-browser-v1', records})], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a'); link.href = url; link.download = 'episteme-progress.json'; link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
