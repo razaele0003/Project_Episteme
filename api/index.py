@@ -45,6 +45,8 @@ def presentation(connection, files, sha=''):
         status, checks = analyze(project, files)
         content = {name: files.get(project.get(name + '_path', ''), '') for name in ('brief', 'source', 'readme')}
         ready = bool(project.get('project_folder') and all(value.strip() for value in content.values()))
+        if not ready:
+            status = 'in_progress' if any(value.strip() for value in content.values()) else 'not_started'
         projects.append({**project, 'status': status, 'checks': checks, 'structure_ready': ready,
                          **{name: value if ready else '' for name, value in content.items()},
                          'repository': connection['repository'], 'sha': sha,
