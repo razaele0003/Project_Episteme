@@ -11,14 +11,17 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote, urlparse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from backend import github_auth
+from backend import public_site
+from backend.security import SecurityMiddleware
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = json.loads((ROOT / 'backend/catalog.json').read_text())
@@ -27,9 +30,16 @@ REPO = 'razaele0003/iz_time'
 EMPTY_BINDING = {'repository':'','root':''}
 DB_PATH = Path(os.environ.get('EPISTEME_DB', ROOT / 'data/progress.sqlite3'))
 LOCK = threading.Lock()
-app = FastAPI(title='Project Episteme')
+public_site.public_mode()
+PUBLIC_ORIGIN = public_site.site_origin()
+if public_site.public_mode() and not PUBLIC_ORIGIN:
+    raise ValueError('Public deployment requires PUBLIC_SITE_URL.')
+app = FastAPI(title='Project Episteme', docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(github_auth.router)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'] + os.environ.get('EPISTEME_HOSTS','').split(','))
+app.include_router(public_site.router)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1','localhost','testserver'] + ([urlparse(PUBLIC_ORIGIN).hostname] if PUBLIC_ORIGIN else []))
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.add_middleware(SecurityMiddleware)
 
 def now():
     return datetime.now(timezone.utc).isoformat()
@@ -49,6 +59,7 @@ def database():
       CREATE TABLE IF NOT EXISTS bound_deliveries(binding TEXT, id TEXT, created_at TEXT, PRIMARY KEY(binding,id));
       CREATE TABLE IF NOT EXISTS bound_catalog(binding TEXT PRIMARY KEY, catalog TEXT NOT NULL, sha TEXT NOT NULL, updated_at TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS bound_content(binding TEXT, id TEXT, source_path TEXT, source TEXT, readme_path TEXT, readme TEXT, brief_path TEXT, brief TEXT, expected_output TEXT, PRIMARY KEY(binding,id));
+      CREATE TABLE IF NOT EXISTS evidence_history(binding TEXT, sha TEXT, captured_at TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(binding,sha));
     ''')
     content_columns = {row['name'] for row in db.execute('PRAGMA table_info(bound_content)')}
     if 'brief_path' not in content_columns:
@@ -91,9 +102,9 @@ def github(path, repository=None):
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(502, 'GitHub could not be read. Check connectivity, repository access or the API rate limit. Saved progress was kept.') from exc
 
-def snapshot(connection=None):
+def snapshot(connection=None, reader=None):
     connection = connection or binding()
-    read = lambda path: github(path, connection["repository"])
+    read = reader or (lambda path: github(path, connection["repository"]))
     repo = read('')
     commit = read('commits/' + quote(repo['default_branch'], safe=''))
     sha = commit['sha']
@@ -113,14 +124,21 @@ def snapshot(connection=None):
         if blob.get('encoding') != 'base64':
             raise HTTPException(502, 'GitHub returned an unsupported file encoding.')
         try:
-            files[path] = base64.b64decode(blob['content']).decode('utf-8-sig')
+            decoded = base64.b64decode(blob['content'])
+            if len(decoded) > limit:
+                raise HTTPException(422, f'{path} exceeds the analysis size limit.')
+            files[path] = decoded.decode('utf-8-sig')
+            if sum(len(text.encode('utf-8')) for text in files.values()) > 10_000_000:
+                raise HTTPException(422, 'Repository evidence exceeds 10 MB. Saved progress was kept.')
         except (ValueError, UnicodeError) as exc:
             raise HTTPException(422, f'{path} must use UTF-8 text.') from exc
 
     for path in ('.episteme/curriculum.json','.episteme/projects.json','README.md'):
         read_file(path, 500000)
 
-    projects = catalog(connection, files)
+    legacy = catalog(connection)
+    use_legacy = not any(k.startswith('.episteme/') for k in files) and any(p.get('source_path') in entries for p in legacy)
+    projects = legacy if use_legacy else catalog(connection, files)
     folders = {p['path'] for p in projects if p.get('path')}
     actual_folders = {e['path'] for e in tree['tree'] if e.get('type')=='tree'}
     if not files.get('.episteme/curriculum.json') and folders and not folders.intersection(actual_folders):
@@ -130,6 +148,8 @@ def snapshot(connection=None):
             suggested = ', '.join(p or '(repository root)' for p in alternatives[:3])
             raise HTTPException(422, f'Project folders were found under {suggested}. Update Projects parent folder. Saved progress was kept.')
     wanted = {path for p in projects for path in (p.get('source_path'),p.get('readme_path'),p.get('brief_path')) if path}
+    if len(wanted) > 1500:
+        raise HTTPException(422, 'Too many mapped files. Saved progress was kept.')
     for path in wanted:
         if safe_repo_path(path):
             read_file(path)
@@ -137,7 +157,7 @@ def snapshot(connection=None):
 
 
 def safe_repo_path(path):
-    return bool(path and len(path)<=300 and not path.startswith('/') and all(part not in ('','.','..') for part in path.split('/')))
+    return bool(isinstance(path,str) and path and len(path)<=300 and not re.search(r'[\\\\?#\x00-\x1f]',path) and not path.startswith('/') and all(part not in ('','.','..') for part in path.split('/')))
 
 
 def readme_section(readme, ordinal):
@@ -207,14 +227,18 @@ def complete_saved_catalog(projects):
 
 def dynamic_catalog(connection, files):
     try:
-        curriculum = json.loads(files.get('.episteme/curriculum.json',''))
+        curriculum = json.loads(files.get('.episteme/curriculum.json','{"projects":[]}'))
         mappings = json.loads(files.get('.episteme/projects.json','{}'))
         rows = curriculum['projects']
+        if not isinstance(rows,list) or not isinstance(mappings,dict) or not isinstance(mappings.get('projects',[]),list):
+            raise ValueError()
         mapped = {item['project_id']:item for item in mappings.get('projects',[]) if isinstance(item,dict) and item.get('project_id')}
-        if not isinstance(rows,list) or not rows:
-            return None
+        if len(mapped) != len(mappings.get('projects',[])) or any(not isinstance(key,str) for key in mapped):
+            raise ValueError()
+        if any((item.get('project_folder') or item.get('folder')) and not standard_folder(item) for item in mapped.values()):
+            raise ValueError()
     except (ValueError,TypeError,KeyError):
-        return None
+        raise HTTPException(422,'Invalid Episteme manifest or project folder mapping. Saved progress was kept.')
     projects = []
     # Preserve the learner's first ten projects as individual archive entries.
     for row in rows[:500]:
@@ -222,6 +246,8 @@ def dynamic_catalog(connection, files):
             continue
         if not row.get('historical'):
             continue
+        if not isinstance(row['id'],str) or row['id'] in {p['id'] for p in projects} or row['id'] in {p['id'] for p in COURSE['projects']}:
+            raise HTTPException(422,'Duplicate or invalid archived project ID. Saved progress was kept.')
         mapping = mapped.get(row['id'],{})
         criteria = row.get('criteria') if isinstance(row.get('criteria'),list) else []
         expected = [str(item.get('text')) for item in criteria if isinstance(item,dict) and item.get('text')]
@@ -229,7 +255,7 @@ def dynamic_catalog(connection, files):
         phase = row.get('phase') if isinstance(row.get('phase'),int) else None
         project = {
             'id':str(row['id']),'alias':str(row.get('alias') or row['id']),'title':str(row['title']),
-            'ordinal':int(row.get('ordinal') or len(projects)+1),'historical':bool(row.get('historical')),
+            'ordinal':len(projects)+1,'historical':bool(row.get('historical')),
             'phase':phase,'category':'Practice archive' if row.get('historical') else f"Phase {phase}" if phase is not None else 'Curriculum',
             'description':instructions[0] if instructions else 'A mapped project from the repository curriculum.',
             'instructions':instructions,'expected_output':expected,'path':f"projects/{row['id']}"
@@ -295,10 +321,12 @@ def binding():
 def catalog(connection, files=None):
     if not connection.get('repository'):
         return [course_project(row, ordinal=int(row.get('ordinal') or index + 1)) for index,row in enumerate(COURSE.get('projects',[]))]
-    if files:
+    if files is not None and ('.episteme/curriculum.json' in files or '.episteme/projects.json' in files):
         dynamic = dynamic_catalog(connection, files)
         if dynamic:
             return dynamic
+    if files is not None and not any(path.endswith('/'+p['path'].split('/')[-1]+'/main.py') or path==p['path'].split('/')[-1]+'/main.py' for path in files for p in CATALOG):
+        return [course_project(row) for row in COURSE['projects']]
     root = connection['root']
     return [{**p,'path':'/'.join(filter(None,[root,p['path'].split('/')[-1]])),
              'project_folder':'/'.join(filter(None,[root,p['path'].split('/')[-1]])),
@@ -310,8 +338,8 @@ def catalog(connection, files=None):
 
 
 class ConnectionInput(BaseModel):
-    repository: str
-    root: str = 'projects'
+    repository: str = Field(max_length=250)
+    root: str = Field(default='projects', max_length=200)
 
 
 def normalize_connection(value):
@@ -335,6 +363,15 @@ def persist_snapshot(db, connection, sha, files, source, delivery=None):
     key = binding_key(connection)
     timestamp = now()
     projects = catalog(connection, files)
+    # Preserve the last available legacy snapshot before any current-state replacement.
+    previous = db.execute('SELECT sha,updated_at,catalog FROM bound_catalog WHERE binding=?',(key,)).fetchone()
+    if previous:
+        payload = {'catalog':json.loads(previous['catalog']),
+                   'content':[dict(r) for r in db.execute('SELECT * FROM bound_content WHERE binding=?',(key,))],
+                   'checks':[dict(r) for r in db.execute('SELECT * FROM bound_progress WHERE binding=?',(key,))],
+                   'source':'preserved-current-state'}
+        db.execute('INSERT OR IGNORE INTO evidence_history VALUES(?,?,?,?)',(key,previous['sha'],previous['updated_at'],json.dumps(payload)))
+    db.execute('INSERT OR IGNORE INTO evidence_history VALUES(?,?,?,?)',(key,sha,timestamp,json.dumps({'catalog':projects,'files':files,'source':source,'checks':{p['id']:analyze(p,files) for p in projects}})))
     db.execute('INSERT OR REPLACE INTO bound_catalog VALUES(?,?,?,?)',(key,json.dumps(projects),sha,timestamp))
     db.execute('DELETE FROM bound_content WHERE binding=?',(key,))
     for p in projects:
@@ -423,7 +460,7 @@ def reset_workspace(request: Request):
     require_local(request)
     with LOCK:
         with database() as db:
-            for table in ('bound_progress','bound_syncs','bound_deliveries','bound_catalog','bound_content','progress','syncs','deliveries'):
+            for table in ('bound_progress','bound_syncs','bound_deliveries','bound_catalog','bound_content','progress','syncs','deliveries','evidence_history'):
                 db.execute(f'DELETE FROM {table}')
             db.execute("UPDATE settings SET value=? WHERE key='binding'",(json.dumps(EMPTY_BINDING),))
         github_auth.clear_session()
@@ -473,6 +510,17 @@ def manual_sync(request: Request):
     require_local(request)
     return sync()
 
+
+@app.get('/api/history/{sha}')
+def history_snapshot(sha: str):
+    if not re.fullmatch(r'[a-fA-F0-9]{40,64}', sha):
+        raise HTTPException(422,'Invalid commit identifier.')
+    with database() as db:
+        row = db.execute('SELECT captured_at,payload FROM evidence_history WHERE binding=? AND sha=?',(binding_key(binding()),sha)).fetchone()
+    if not row:
+        raise HTTPException(404,'This snapshot has no archived content. Older syncs may contain only a commit link.')
+    return {'sha':sha,'captured_at':row['captured_at'],'evidence':json.loads(row['payload'])}
+
 @app.post('/api/webhooks/github')
 async def webhook(request: Request):
     secret = os.environ.get('GITHUB_WEBHOOK_SECRET')
@@ -520,6 +568,33 @@ def favicon():
 
 @app.get('/')
 def index():
+    if public_site.public_mode():
+        return public_site.home()
     if not (ROOT / 'dist/index.html').exists():
         raise HTTPException(503,'Build the frontend with npm run build first.')
     return FileResponse(ROOT / 'dist/index.html')
+
+
+@app.get('/healthz', include_in_schema=False)
+def health():
+    return {'status':'ok','mode':'public' if public_site.public_mode() else 'local'}
+
+
+@app.get('/public-site.css', include_in_schema=False)
+def public_css():
+    return FileResponse(ROOT / 'public/public-site.css', media_type='text/css')
+
+
+@app.get('/social-card.svg', include_in_schema=False)
+def social_card():
+    return FileResponse(ROOT / 'public/social-card.svg', media_type='image/svg+xml')
+
+
+@app.get('/social-card.png', include_in_schema=False)
+def social_card_png():
+    return FileResponse(ROOT / 'public/social-card.png', media_type='image/png')
+
+
+@app.get('/{path:path}', include_in_schema=False)
+def missing_page(path: str):
+    return public_site.not_found()

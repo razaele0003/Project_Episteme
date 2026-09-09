@@ -87,7 +87,6 @@ def import_pdf(source: Path) -> dict:
     with pdfplumber.open(source) as pdf:
         for page_number, page in enumerate(pdf.pages, 1):
             lines = (page.extract_text() or "").splitlines()
-            headings = []
             for index, line in enumerate(lines):
                 match = re.search(r"Phase\s+(\d+)\s*:\s*(.+)", line)
                 if not match:

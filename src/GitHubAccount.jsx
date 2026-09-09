@@ -1,3 +1,4 @@
+import {browserWorkspace} from './workspace.js';
 import React, {useEffect,useState} from 'react';
 import {Github} from 'lucide-react';
 
@@ -8,7 +9,7 @@ async function api(path,method='GET'){
   if(!response.ok)throw new Error(body.detail||'GitHub is unavailable. Please try again.');
   return body;
 }
-export default function GitHubAccount({onSelect,disabled}){
+function LocalGitHubAccount({onSelect,disabled}){
   const [account,setAccount]=useState(null),[repos,setRepos]=useState([]),[page,setPage]=useState(0),[more,setMore]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[query,setQuery]=useState('');
   async function list(next=1){setBusy(true);setError('');try{const data=await api('repositories?page='+next);setRepos(old=>next===1?data.items:[...old,...data.items]);setPage(next);setMore(data.has_more);}catch(e){setError(e.message);}finally{setBusy(false);}}
   useEffect(()=>{api('status').then(a=>{setAccount(a);if(a.signed_in)list();}).catch(e=>setError(e.message));
@@ -25,4 +26,8 @@ export default function GitHubAccount({onSelect,disabled}){
       account?.configured?<button className="sync-button" type="button" disabled={busy||disabled} onClick={login}>{busy?'Opening GitHub…':'Sign in with GitHub'}</button>:
       account&&<details className="oauth-setup"><summary>Enable GitHub sign-in · one-time setup</summary><p>Episteme needs a registered GitHub OAuth app before sign-in can work. You can still sync any public repository using its URL.</p><p>Register the app with callback <code>{account.callback}</code>, then set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in the backend environment and restart. Keep the secret out of this form.</p><a href="https://github.com/settings/applications/new" target="_blank" rel="noreferrer">Register a GitHub OAuth app</a></details>}
   </section>;
+}
+
+export default function GitHubAccount(props){
+  return browserWorkspace?<section className="github-account"><div className="account-heading"><Github size={20}/><div><strong>Connect a public repository</strong><p>Paste its GitHub URL below. No login or token is needed. Private repositories are not supported in this free browser workspace.</p></div></div></section>:<LocalGitHubAccount {...props}/>;
 }

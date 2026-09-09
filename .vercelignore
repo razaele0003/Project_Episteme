@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.venv
+data
+tmp
+*.log
+test-results
+playwright-report
+node_modules

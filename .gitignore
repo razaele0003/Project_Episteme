@@ -7,3 +7,8 @@ data/
 .env
 *.log
 tmp/
+test-results/
+playwright-report/
+.ruff_cache/
+.env.*
+!.env.example

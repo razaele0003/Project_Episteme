@@ -1,0 +1,36 @@
+name: Verify Episteme
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: npm ci
+      - run: pip install -r requirements.txt ruff==0.16.6 pip-audit==2.10.1
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: python -m ruff check backend tests scripts
+      - run: python -m pytest -q
+      - run: npm run build
+      - run: npm run check:budget
+      - run: npm audit --audit-level=high
+      - run: pip-audit -r requirements.txt
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: npx playwright test -c playwright.browser.config.js
+      - run: npm run build:vercel
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-results
+          path: test-results

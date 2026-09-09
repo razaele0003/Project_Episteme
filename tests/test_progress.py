@@ -135,7 +135,7 @@ def test_connection_switch_and_failed_access_preserve_progress(client,monkeypatc
     assert client.put('/api/connection',json={'repository':'https://github.com/someone/another-name','root':'learning'},headers=headers).status_code==200
     data=client.get('/api/progress').json()
     assert data['completed']==0 and data['repository']=='someone/another-name'
-    assert data['projects'][0]['path']=='learning/01-temperature'
+    assert data['projects'][0]['id']=='P0.1' and data['total']==206
     def fail(*args):
         raise m.HTTPException(502,'Unavailable')
     monkeypatch.setattr(m,'snapshot',fail)

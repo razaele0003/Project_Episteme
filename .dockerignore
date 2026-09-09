@@ -1,0 +1,13 @@
+.git
+.venv
+node_modules
+dist
+data
+tmp
+.env
+.env.*
+*.log
+test-results
+playwright-report
+__pycache__
+.pytest_cache
