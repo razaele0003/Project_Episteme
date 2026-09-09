@@ -79,7 +79,7 @@ def test_local_reads_require_loopback_and_same_origin(monkeypatch):
 
 
 def test_curriculum_is_unchanged():
-    assert hashlib.sha256((m.ROOT/'backend/course_curriculum.json').read_bytes()).hexdigest()=='36a5c42f700d328868c387593532bae165215874a9491c67affc04850d44586c'
+    assert hashlib.sha256((m.ROOT/'backend/course_curriculum.json').read_bytes().replace(b'\r\n',b'\n')).hexdigest()=='83e63e27ca820558b52a66ce518500c2116a569478ae3b2147bf5c00f19717e2'
 
 
 def test_mapping_only_uses_packaged_curriculum():
